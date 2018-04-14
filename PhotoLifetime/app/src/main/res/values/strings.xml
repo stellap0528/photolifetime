@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Photo Lifetime</string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
+    <string name="gallery_nav_text">Gallery</string>
+    <string name="video_nav_text">Video</string>
+    <string name="photo_nav_text">Photo</string>
+</resources>
