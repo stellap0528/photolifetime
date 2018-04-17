@@ -1,1 +1,1 @@
-hello, Trey testing repo submission
+Trey - Having problems with git right now, so sharing my work via email.
