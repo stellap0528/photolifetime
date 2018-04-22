@@ -6,4 +6,7 @@
     <string name="gallery_nav_text">Gallery</string>
     <string name="video_nav_text">Video</string>
     <string name="photo_nav_text">Photo</string>
+    <string name="view">View Lifetime</string>
+    <string name="edit">Edit Lifetime</string>
+    <string name="delete">Delete</string>
 </resources>

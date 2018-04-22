@@ -11,8 +11,12 @@ import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.ContextMenu;
+import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -53,8 +57,25 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    public boolean onContextItemSelected(MenuItem item){
+        switch(item.getItemId()){
+            case R.id.action_view_lifetime:
+                return true;
+            case R.id.action_edit_lifetime:
+                return true;
+            case R.id.action_delete:
+                return true;
+        }
+        return super.onContextItemSelected(item);
+    }
 
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_edit, menu);
+        return true;
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,12 +84,9 @@ public class MainActivity extends AppCompatActivity {
         BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
 //        mImageView = findViewById(R.id.imageView);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
-        recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
-        recyclerView.setHasFixedSize(true);
-        mAdapter = new MediaAdapter();
-        recyclerView.setAdapter(mAdapter);
 
         /* In-App Camera View Method */
 //        if (MainActivity.this.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)){
@@ -82,13 +100,15 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         switch (requestCode){
             case PICK_IMAGE:
-                if (requestCode == RESULT_OK) {
+                if (resultCode == RESULT_OK) {
                     imageUri = data.getData();
+//                    ImageView imageView = findViewById(R.id.imageView);
+//                    imageView.setImageURI(imageUri);
 //            imageView.setImageURI(imageUri);
                 }
                 break;
             case REQUEST_IMAGE_CAPTURE:
-                if (requestCode == RESULT_OK) {
+                if (resultCode == RESULT_OK) {
                     Bundle extras = data.getExtras();
 //            Bitmap imageBitmap = (Bitmap) extras.get("data");
 //            mImageView.setImageBitmap(imageBitmap);
