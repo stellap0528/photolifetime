@@ -1,6 +1,9 @@
 package edu.rosehulman.lewistd.photolifetime;
 
+import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
@@ -24,6 +27,7 @@ import android.widget.TextView;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -60,16 +64,36 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    public boolean onContextItemSelected(MenuItem item){
+    public boolean onOptionsItemSelected(MenuItem item){
         switch(item.getItemId()){
             case R.id.action_view_lifetime:
                 return true;
             case R.id.action_edit_lifetime:
                 return true;
             case R.id.action_delete:
+                try {
+                    deleteImage();
+                } catch (URISyntaxException e) {
+                    e.printStackTrace();
+                }
                 return true;
         }
-        return super.onContextItemSelected(item);
+        return super.onOptionsItemSelected(item);
+    }
+    public void deleteImage() throws URISyntaxException {
+
+        Uri queryUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+        String selection = MediaStore.Images.Media.DATA + " = ?";
+        ContentResolver contentResolver = getContentResolver();
+        String[] projection = { MediaStore.Images.Media._ID };
+        String[] selectionArgs = new String[] {PathUtil.getPath(this, photoUri)};
+        Cursor c = contentResolver.query(queryUri, projection, selection, selectionArgs, null);
+        if(c.moveToFirst()){
+            long id = c.getLong(c.getColumnIndexOrThrow(MediaStore.Images.Media._ID));
+            Uri deleteUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id);
+            contentResolver.delete(deleteUri, null, null);
+        }
+        c.close();
     }
 
 
