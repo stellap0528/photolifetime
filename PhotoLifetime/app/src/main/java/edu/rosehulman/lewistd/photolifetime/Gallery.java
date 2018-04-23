@@ -4,5 +4,11 @@ import java.util.ArrayList;
 
 public class Gallery {
 
-    ArrayList<Medias> mGallery = new ArrayList<>();
+    public ArrayList<Medias> mMedia;
+
+    public Gallery() {
+
+        mMedia = new ArrayList<>();
+
+    }
 }
