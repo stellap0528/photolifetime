@@ -7,11 +7,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import java.util.ArrayList;
+
 public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> {
 
     Context mContext;
     Gallery mGallery;
     RecyclerView mRecyclerView;
+//    ArrayList<Medias> mMedias;
 
     public MediaAdapter(Context context, RecyclerView rView) {
         mContext = context;
@@ -27,8 +30,13 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
-        holder.mImageView.setImageResource(R.mipmap.ic_launcher_round);
+        public void onBindViewHolder(ViewHolder holder, int position) {
+        Medias currentMedia = mGallery.mMedia.get(position);
+        if (currentMedia.placehold == R.mipmap.ic_launcher_round) {
+            holder.mImageView.setImageResource(R.mipmap.ic_launcher_round);
+        } else {
+            holder.mImageView.setImageBitmap(mGallery.mMedia.get(position).thumbnail);
+        }
     }
 
     @Override

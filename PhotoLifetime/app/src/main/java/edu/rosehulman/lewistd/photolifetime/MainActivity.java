@@ -115,10 +115,10 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
-//        recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
-//        recyclerView.setHasFixedSize(true);
-//        mAdapter = new MediaAdapter(this, recyclerView);
-//        recyclerView.setAdapter(mAdapter);
+        recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
+        recyclerView.setHasFixedSize(true);
+        mAdapter = new MediaAdapter(this, recyclerView);
+        recyclerView.setAdapter(mAdapter);
 
         /* In-App Camera View Method */
 //        if (MainActivity.this.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)){
@@ -152,7 +152,7 @@ public class MainActivity extends AppCompatActivity {
                         e.printStackTrace();
                     }
                     Medias pic = new Medias(bitmap, mCurrentPhotoPath);
-//                    mAdapter.addPic(pic);
+                    mAdapter.addPic(pic);
                 }
                 break;
         }
