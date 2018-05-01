@@ -1,9 +1,7 @@
 package edu.rosehulman.lewistd.photolifetime;
 
-import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.provider.ContactsContract;
 
 /**
  * Created by parks8 on 2018-04-30.
@@ -11,19 +9,19 @@ import android.provider.ContactsContract;
 
 public class PhotoLifeTime implements Parcelable{
     private String photoUri;
-    private String timeStamp;
+    private long timeStamp;
     private String key;
 
     public PhotoLifeTime(){}
 
-    public PhotoLifeTime(String PhotoUri, String TimeStamp){
+    public PhotoLifeTime(String PhotoUri, long TimeStamp){
         this.photoUri=PhotoUri;
         this.timeStamp=TimeStamp;
     }
 
     protected PhotoLifeTime(Parcel in){
         this.photoUri = in.readString();
-        this.timeStamp = in.readString();
+        this.timeStamp = in.readLong();
     }
 
     public static final Creator<PhotoLifeTime> CREATOR = new Creator<PhotoLifeTime>() {
@@ -46,7 +44,7 @@ public class PhotoLifeTime implements Parcelable{
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(photoUri);
-        dest.writeString(timeStamp);
+        dest.writeLong(timeStamp);
     }
 
     public void setValues(PhotoLifeTime photoLifeTime){
@@ -71,11 +69,11 @@ public class PhotoLifeTime implements Parcelable{
         this.photoUri = PhotoUri;
     }
 
-    public String getTimeStamp() {
+    public Long getTimeStamp() {
         return timeStamp;
     }
 
-    public void setTimeStamp(String TimeStamp){
+    public void setTimeStamp(Long TimeStamp){
         this.timeStamp= TimeStamp;
     }
 

@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "556602304546",
+    "firebase_url": "https://photolifetime-76d95.firebaseio.com",
+    "project_id": "photolifetime-76d95",
+    "storage_bucket": "photolifetime-76d95.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:556602304546:android:13ac938833a53af2",
+        "android_client_info": {
+          "package_name": "edu.rosehulman.lewistd.photolifetime"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "556602304546-ef5h4429qj64o0dmserrfrp3c84ehgsp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "edu.rosehulman.lewistd.photolifetime",
+            "certificate_hash": "aca6504f48b5497d860e5ab593850a029b8e383a"
+          }
+        },
+        {
+          "client_id": "556602304546-0k95b3p8v791t0c0398gt7djdg78rq7t.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCdPjMO4GG14ItdFHV3dyfHQh6MmQ-WEGE"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "556602304546-0k95b3p8v791t0c0398gt7djdg78rq7t.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

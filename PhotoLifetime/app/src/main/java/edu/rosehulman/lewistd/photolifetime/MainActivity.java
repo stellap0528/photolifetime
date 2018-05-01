@@ -96,59 +96,6 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item){
-        Log.d("menu", "clicked");
-        switch(item.getItemId()){
-            case R.id.action_view_lifetime:
-                return true;
-            case R.id.action_edit_lifetime:
-                return true;
-            case R.id.action_delete:
-                showDeleteDialog();
-                return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-
-    public void showDeleteDialog(){
-        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-
-        builder.setTitle(R.string.delete);
-        builder.setMessage(R.string.delete_message);
-        builder.setPositiveButton(R.string.delete,  new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                try {
-                    deleteImage(photoUri);
-                } catch (URISyntaxException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-        builder.setNegativeButton(android.R.string.cancel, null);
-        builder.create().show();
-    }
-
-
-    public void deleteImage(Uri pUri) throws URISyntaxException {
-
-        Uri queryUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-        String selection = MediaStore.Images.Media.DATA + " = ?";
-        ContentResolver contentResolver = getContentResolver();
-        String[] projection = { MediaStore.Images.Media._ID };
-        Log.d("find", pUri.toString());
-        String[] selectionArgs = new String[] {PathUtil.getPath(this, pUri)};
-        Cursor c = contentResolver.query(queryUri, projection, selection, selectionArgs, null);
-        if(c.moveToFirst()){
-            long id = c.getLong(c.getColumnIndexOrThrow(MediaStore.Images.Media._ID));
-            Uri deleteUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id);
-            contentResolver.delete(deleteUri, null, null);
-        }
-        c.close();
-    }
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
         super.onActivityResult(requestCode, resultCode, data);
         switch (requestCode){
