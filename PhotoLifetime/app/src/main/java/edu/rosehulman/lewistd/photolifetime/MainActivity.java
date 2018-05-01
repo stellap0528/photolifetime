@@ -122,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 try {
-                    deleteImage();
+                    deleteImage(photoUri);
                 } catch (URISyntaxException e) {
                     e.printStackTrace();
                 }
@@ -133,14 +133,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    public void deleteImage() throws URISyntaxException {
+    public void deleteImage(Uri pUri) throws URISyntaxException {
 
         Uri queryUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
         String selection = MediaStore.Images.Media.DATA + " = ?";
         ContentResolver contentResolver = getContentResolver();
         String[] projection = { MediaStore.Images.Media._ID };
-        Log.d("find", photoUri.toString());
-        String[] selectionArgs = new String[] {PathUtil.getPath(this, photoUri)};
+        Log.d("find", pUri.toString());
+        String[] selectionArgs = new String[] {PathUtil.getPath(this, pUri)};
         Cursor c = contentResolver.query(queryUri, projection, selection, selectionArgs, null);
         if(c.moveToFirst()){
             long id = c.getLong(c.getColumnIndexOrThrow(MediaStore.Images.Media._ID));
