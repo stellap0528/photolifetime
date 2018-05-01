@@ -9,4 +9,5 @@
     <string name="view">View Lifetime</string>
     <string name="edit">Edit Lifetime</string>
     <string name="delete">Delete</string>
+    <string name="delete_message">Would you like to delete the image?</string>
 </resources>

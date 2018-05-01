@@ -1,7 +1,9 @@
 package edu.rosehulman.lewistd.photolifetime;
 
+import android.app.Fragment;
 import android.content.ContentResolver;
 import android.content.ContentUris;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -12,6 +14,7 @@ import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.content.FileProvider;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -38,9 +41,9 @@ public class MainActivity extends AppCompatActivity {
     String mCurrentPhotoPath;
     Uri photoUri;
 
-    private ImageView mImageView;
     private MediaAdapter mAdapter;
 
+    public static String ARG_GALLARYPIC = "GALLARYPIC";
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = new BottomNavigationView.OnNavigationItemSelectedListener() {
 
@@ -58,51 +61,23 @@ public class MainActivity extends AppCompatActivity {
                 case R.id.gallery_button:
 //                    mTextMessage.setText(R.string.gallery_nav_text);
                     openGallery();
+                    Log.d("gallery", "gallery opened");
+                    Bundle args = new Bundle();
+                    args.putParcelable(ARG_GALLARYPIC, photoUri);
+                    gallaryPicFragment gpf = new gallaryPicFragment();
+                    gpf.setArguments(args);
+
+                    android.app.FragmentTransaction mFragmentTransaction = getFragmentManager().beginTransaction();
+                    mFragmentTransaction.replace(R.id.container, gpf);
+                    mFragmentTransaction.addToBackStack("").commit();
+                    
                     return true;
             }
             return false;
         }
     };
 
-    public boolean onOptionsItemSelected(MenuItem item){
-        switch(item.getItemId()){
-            case R.id.action_view_lifetime:
-                return true;
-            case R.id.action_edit_lifetime:
-                return true;
-            case R.id.action_delete:
-                try {
-                    deleteImage();
-                } catch (URISyntaxException e) {
-                    e.printStackTrace();
-                }
-                return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-    public void deleteImage() throws URISyntaxException {
 
-        Uri queryUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-        String selection = MediaStore.Images.Media.DATA + " = ?";
-        ContentResolver contentResolver = getContentResolver();
-        String[] projection = { MediaStore.Images.Media._ID };
-        String[] selectionArgs = new String[] {PathUtil.getPath(this, photoUri)};
-        Cursor c = contentResolver.query(queryUri, projection, selection, selectionArgs, null);
-        if(c.moveToFirst()){
-            long id = c.getLong(c.getColumnIndexOrThrow(MediaStore.Images.Media._ID));
-            Uri deleteUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id);
-            contentResolver.delete(deleteUri, null, null);
-        }
-        c.close();
-    }
-
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_edit, menu);
-        return true;
-    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -110,7 +85,6 @@ public class MainActivity extends AppCompatActivity {
 
         BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
-//        mImageView = findViewById(R.id.imageView);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -120,12 +94,7 @@ public class MainActivity extends AppCompatActivity {
         mAdapter = new MediaAdapter(this, recyclerView);
         recyclerView.setAdapter(mAdapter);
 
-        /* In-App Camera View Method */
-//        if (MainActivity.this.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)){
-//
-//            // this device has a camera
-//            getCameraInstance();
-//        }
+
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
@@ -134,9 +103,6 @@ public class MainActivity extends AppCompatActivity {
             case PICK_IMAGE:
                 if (resultCode == RESULT_OK) {
                     photoUri = data.getData();
-//                    ImageView imageView = findViewById(R.id.imageView);
-//                    imageView.setImageURI(imageUri);
-//            imageView.setImageURI(imageUri);
                 }
                 break;
             case REQUEST_IMAGE_CAPTURE:
@@ -162,6 +128,7 @@ public class MainActivity extends AppCompatActivity {
         Intent gallery = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.INTERNAL_CONTENT_URI);
         startActivityForResult(gallery, PICK_IMAGE);
     }
+
     private void dispatchTakePictureIntent(){
         Intent takePictureIntent=new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if(takePictureIntent.resolveActivity(getPackageManager())!=null){
