@@ -7,8 +7,6 @@ import java.io.File;
 public class Medias {
 
     File mMediaFile;
-    Bitmap thumbnail;
-    Bitmap fullImage;
     String mediaPath;
     int placehold;
 
@@ -18,8 +16,7 @@ public class Medias {
 
     }
 
-    public Medias(Bitmap thumbnail, String path) {
-        this.thumbnail = thumbnail;
+    public Medias(String path) {
         this.mediaPath = path;
     }
 }

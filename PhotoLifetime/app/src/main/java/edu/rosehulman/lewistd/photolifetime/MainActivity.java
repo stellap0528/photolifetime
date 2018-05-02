@@ -108,15 +108,15 @@ public class MainActivity extends AppCompatActivity {
                 if (resultCode == RESULT_OK) {
 //                    Bundle extras = data.getExtras();
 //                    Bitmap imageBitmap = (Bitmap) extras.get("data");
-                    Bitmap bitmap = null;
-                    try {
-                        bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), photoUri);
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    Medias pic = new Medias(bitmap, mCurrentPhotoPath);
+//                    Bitmap bitmap = null;
+//                    try {
+//                        bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), photoUri);
+//                    } catch (FileNotFoundException e) {
+//                        e.printStackTrace();
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+                    Medias pic = new Medias(mCurrentPhotoPath);
                     mAdapter.addPic(pic);
                 }
                 break;
