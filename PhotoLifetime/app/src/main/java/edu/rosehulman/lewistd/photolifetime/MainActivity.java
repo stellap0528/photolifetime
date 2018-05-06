@@ -1,11 +1,11 @@
 package edu.rosehulman.lewistd.photolifetime;
 
-import android.app.Fragment;
-import android.content.ContentResolver;
-import android.content.ContentUris;
-import android.content.DialogInterface;
+import android.app.AlarmManager;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
@@ -14,25 +14,20 @@ import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.content.FileProvider;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.ContextMenu;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageView;
-import android.widget.TextView;
+import android.widget.Button;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -41,9 +36,19 @@ public class MainActivity extends AppCompatActivity {
     String mCurrentPhotoPath;
     Uri photoUri;
 
+    Intent mWarningIntent;
+    Intent mDeletionIntent;
+    AlarmManager alarmManager;
+    HashMap<Uri, PendingIntent> warningIntentMap;
+    HashMap<Uri, PendingIntent> deletionIntentMap;
+    HashMap<Uri, Integer> indexMap;
+
+    int index ;
     private MediaAdapter mAdapter;
 
     public static String ARG_GALLARYPIC = "GALLARYPIC";
+    public static String ARG_INDEX = "INDEX";
+
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = new BottomNavigationView.OnNavigationItemSelectedListener() {
 
@@ -66,9 +71,8 @@ public class MainActivity extends AppCompatActivity {
                     args.putParcelable(ARG_GALLARYPIC, photoUri);
                     gallaryPicFragment gpf = new gallaryPicFragment();
                     gpf.setArguments(args);
-
                     android.app.FragmentTransaction mFragmentTransaction = getFragmentManager().beginTransaction();
-                    mFragmentTransaction.replace(R.id.container, gpf);
+                    mFragmentTransaction.replace(R.id.container_layout, gpf);
                     mFragmentTransaction.addToBackStack("").commit();
                     
                     return true;
@@ -77,12 +81,12 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        final Context context = this;
         BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -94,6 +98,14 @@ public class MainActivity extends AppCompatActivity {
         mAdapter = new MediaAdapter(this, recyclerView);
         recyclerView.setAdapter(mAdapter);
 
+        //alarm intentv
+        index = 0;
+
+        mWarningIntent = new Intent(this, WarningReceiver.class);
+        mDeletionIntent = new Intent(this, DeletionReceiver.class);
+        warningIntentMap = new HashMap<>();
+        deletionIntentMap = new HashMap<>();
+        indexMap = new HashMap<>();
 
     }
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
@@ -106,16 +118,6 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case REQUEST_IMAGE_CAPTURE:
                 if (resultCode == RESULT_OK) {
-//                    Bundle extras = data.getExtras();
-//                    Bitmap imageBitmap = (Bitmap) extras.get("data");
-//                    Bitmap bitmap = null;
-//                    try {
-//                        bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), photoUri);
-//                    } catch (FileNotFoundException e) {
-//                        e.printStackTrace();
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
                     Medias pic = new Medias(mCurrentPhotoPath);
                     mAdapter.addPic(pic);
                 }
@@ -189,6 +191,36 @@ public class MainActivity extends AppCompatActivity {
     public void dispatchVideoIntent() {
         Intent takeVideoIntent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
         startActivity(takeVideoIntent);
+    }
+
+    public void deleteAlarm(Uri mUri) {
+        int index = indexMap.get(mUri);
+        alarmManager.cancel(warningIntentMap.get(mUri));
+        alarmManager.cancel(deletionIntentMap.get(mUri));
+    }
+
+    public void setIntentArray(long warningDate, long deletionDate, Uri mUri){
+        if(!indexMap.containsKey(mUri)){
+            indexMap.put(mUri, index);
+            index++;
+        }
+        int mIndex = indexMap.get(mUri);
+
+        mWarningIntent.putExtra("URI", mUri);
+        mDeletionIntent.putExtra("URI", mUri);
+
+        Log.d("check", "set pendingintent for "+mUri+" Date: "+deletionDate);
+        PendingIntent warningPI = PendingIntent.getBroadcast(this, mIndex*10, mWarningIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent deletionPI = PendingIntent.getBroadcast(this, mIndex*10+1, mDeletionIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        alarmManager = (AlarmManager)getSystemService(this.ALARM_SERVICE);
+
+        alarmManager.set(AlarmManager.RTC_WAKEUP, warningDate, warningPI);
+        alarmManager.set(AlarmManager.RTC_WAKEUP, deletionDate, deletionPI);
+
+
+        this.warningIntentMap.put(mUri, warningPI);
+        this.deletionIntentMap.put(mUri, deletionPI);
     }
 
     /* In-App Camera View Method */

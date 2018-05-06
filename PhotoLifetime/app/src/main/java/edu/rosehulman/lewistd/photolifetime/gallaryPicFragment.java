@@ -1,14 +1,21 @@
 package edu.rosehulman.lewistd.photolifetime;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+
+import android.content.Intent;
 import android.content.ContentResolver;
 import android.content.ContentUris;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.provider.CalendarContract;
 import android.provider.ContactsContract;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -28,11 +35,11 @@ import android.widget.CalendarView;
 import android.widget.ImageView;
 
 import java.net.URISyntaxException;
+import java.util.Calendar;
 
 /**
  * Created by parks8 on 2018-04-30.
  */
-
 public class gallaryPicFragment extends Fragment {
 
     private Uri mUri;
@@ -40,8 +47,20 @@ public class gallaryPicFragment extends Fragment {
     private LayoutInflater mInflater;
     private ChildEventListener mChildEventListener;
     private DatabaseReference mPhotoLifetimeRef;
+
+    private Calendar deletionCalendar = Calendar.getInstance();
+    private Calendar warningCalendar = Calendar.getInstance();
+    private Context context;
     private PhotoLifeTime mCurrentItem;
+
+    int mYear;
+    int mDate;
+    int mMonth;
+    private int index;
+
     public gallaryPicFragment(){}
+
+    AlarmManager alarmManager;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstance){
@@ -56,6 +75,10 @@ public class gallaryPicFragment extends Fragment {
         mChildEventListener = new PhotoLifeTimeChildEventListener();
         mPhotoLifetimeRef.addChildEventListener(mChildEventListener);
         setHasOptionsMenu(true);
+        this.context = getContext();
+
+        index = getArguments().getInt(MainActivity.ARG_INDEX);
+
         return rootView;
     }
 
@@ -100,17 +123,48 @@ public class gallaryPicFragment extends Fragment {
         View view = mInflater.inflate(R.layout.dialog_add, null, false);
         builder.setView(view);
         final CalendarView deliveryDateView = (CalendarView) view.findViewById(R.id.calendar_view);
-        if(isEditing){
-            deliveryDateView.setDate(mCurrentItem.getTimeStamp());
-        }
+        deliveryDateView.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
+            @Override
+            public void onSelectedDayChange(@NonNull CalendarView view, int year, int month, int dayOfMonth) {
+                mYear = year;
+                mMonth = month;
+                mDate = dayOfMonth;
+            }
+        });
+
         builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
+
                 long date = deliveryDateView.getDate();
-                mPhotoLifetimeRef.push().setValue(mUri.toString(), date);
+                deliveryDateView.getDate();
+                Log.d("alarm", "date selected to :"+deliveryDateView.getDate());
+
+                warningCalendar.set(mYear, mMonth, mDate-1, 0, 0, 0);
+                deletionCalendar.set(mYear, mMonth, mDate, 19, 31, 0);
+                Log.d("alarm", "date set to :"+deletionCalendar.getTimeInMillis());
+                ((MainActivity) getActivity()).setIntentArray(warningCalendar.getTimeInMillis(), deletionCalendar.getTimeInMillis(), mUri);
+//                deliveryDateView.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
+//                    @Override
+//                    public void onSelectedDayChange(@NonNull CalendarView view, int year, int month, int dayOfMonth) {
+//                        warningCalendar.set(year, month, dayOfMonth-1, 0, 0, 0);
+//                        deletionCalendar.set(year, month, dayOfMonth, 0, 0, 0);
+//                        Log.d("alarm", "date set to :"+deletionCalendar.getTimeInMillis());
+//                        ((MainActivity) getActivity()).setIntentArray(warningCalendar.getTimeInMillis(), deletionCalendar.getTimeInMillis(), mUri);
+//                    }
+//                });
+
+//                mPhotoLifetimeRef.push().setValue(mUri.toString(), date);
+            }
+        });
+        builder.setNeutralButton("delete", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                ((MainActivity) getActivity()).deleteAlarm(mUri);
             }
         });
         builder.setNegativeButton(android.R.string.cancel, null);
+
         builder.create().show();
     }
     private void showPhotoLifeTime(){

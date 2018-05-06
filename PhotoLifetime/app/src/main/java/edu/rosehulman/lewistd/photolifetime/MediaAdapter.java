@@ -16,8 +16,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+
 import java.io.File;
 import java.util.ArrayList;
+
 
 public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> {
 
@@ -25,15 +34,49 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
     Gallery mGallery;
     RecyclerView mRecyclerView;
     Medias mCurrentMedia;
+    String mUid;
+    DatabaseReference mPhotoLifetimeRef;
+    Query mQueryRef;
+
 //    ArrayList<Medias> mMedias;
 
     public MediaAdapter(Context context, RecyclerView rView) {
         mContext = context;
         mRecyclerView = rView;
         mGallery = new Gallery();
+//        mUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        mPhotoLifetimeRef = FirebaseDatabase.getInstance().getReference().child("weatherpics");
+        mQueryRef = mPhotoLifetimeRef.orderByChild("uid").equalTo(mUid);
 //        mGallery.mMedia.add(new Medias());
     }
 
+    class MediaEventListener implements ChildEventListener{
+
+        @Override
+        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+
+        }
+
+        @Override
+        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+        }
+
+        @Override
+        public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+        }
+
+        @Override
+        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+        }
+
+        @Override
+        public void onCancelled(DatabaseError databaseError) {
+
+        }
+    }
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.media_view, parent, false);

@@ -10,18 +10,21 @@ import android.os.Parcelable;
 public class PhotoLifeTime implements Parcelable{
     private String photoUri;
     private long timeStamp;
+    private String uid;
     private String key;
 
     public PhotoLifeTime(){}
 
-    public PhotoLifeTime(String PhotoUri, long TimeStamp){
+    public PhotoLifeTime(String PhotoUri, long TimeStamp, String uid){
         this.photoUri=PhotoUri;
         this.timeStamp=TimeStamp;
+        this.uid = uid;
     }
 
     protected PhotoLifeTime(Parcel in){
         this.photoUri = in.readString();
         this.timeStamp = in.readLong();
+        uid = in.readString();
     }
 
     public static final Creator<PhotoLifeTime> CREATOR = new Creator<PhotoLifeTime>() {
@@ -50,7 +53,6 @@ public class PhotoLifeTime implements Parcelable{
     public void setValues(PhotoLifeTime photoLifeTime){
         this.photoUri = photoLifeTime.getPhotoUri();
         this.timeStamp = photoLifeTime.getTimeStamp();
-
     }
 
 
@@ -65,6 +67,7 @@ public class PhotoLifeTime implements Parcelable{
     public String getPhotoUri() {
         return photoUri;
     }
+
     public void setPhotoUri(String PhotoUri) {
         this.photoUri = PhotoUri;
     }
@@ -77,4 +80,11 @@ public class PhotoLifeTime implements Parcelable{
         this.timeStamp= TimeStamp;
     }
 
+    public String getUid() {
+        return uid;
+    }
+
+    public void setUid(String uid) {
+        this.uid = uid;
+    }
 }
