@@ -95,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
         recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
         recyclerView.setHasFixedSize(true);
-        mAdapter = new MediaAdapter(this, recyclerView);
+        mAdapter = new MediaAdapter(this, recyclerView, getSupportFragmentManager());
         recyclerView.setAdapter(mAdapter);
 
         //alarm intentv
@@ -170,16 +170,6 @@ public class MainActivity extends AppCompatActivity {
         return image;
     }
 
-    public static  Bitmap cropAndScale (Bitmap source,int scale){
-        int factor = source.getHeight() <= source.getWidth() ? source.getHeight(): source.getWidth();
-        int longer = source.getHeight() >= source.getWidth() ? source.getHeight(): source.getWidth();
-        int x = source.getHeight() >= source.getWidth() ?0:(longer-factor)/2;
-        int y = source.getHeight() <= source.getWidth() ?0:(longer-factor)/2;
-        source = Bitmap.createBitmap(source, x, y, factor, factor);
-        source = Bitmap.createScaledBitmap(source, scale, scale, false);
-        return source;
-    }
-
     private void galleryAddPic() {
         Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
         File f = new File(mCurrentPhotoPath);
@@ -222,18 +212,4 @@ public class MainActivity extends AppCompatActivity {
         this.warningIntentMap.put(mUri, warningPI);
         this.deletionIntentMap.put(mUri, deletionPI);
     }
-
-    /* In-App Camera View Method */
-//    /** A safe way to get an instance of the Camera object. */
-//    public static Camera getCameraInstance(){
-//        Camera c = null;
-//        try {
-//            c = Camera.open(); // attempt to get a Camera instance
-//        }
-//        catch (Exception e){
-//            // Camera is not available (in use or does not exist)
-//        }
-//        return c; // returns null if camera is unavailable
-//    }
-
 }
