@@ -4,6 +4,8 @@ import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Intent;
@@ -27,6 +29,7 @@ import android.widget.Button;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -47,6 +50,9 @@ public class MainActivity extends AppCompatActivity {
 
     int index ;
     private MediaAdapter mAdapter;
+    static Context context;
+    static ContentResolver contentResolver;
+
 
     public static String ARG_GALLARYPIC = "GALLARYPIC";
     public static String ARG_INDEX = "INDEX";
@@ -68,6 +74,7 @@ public class MainActivity extends AppCompatActivity {
                 case R.id.gallery_button:
 //                    mTextMessage.setText(R.string.gallery_nav_text);
                     openGallery();
+<<<<<<< HEAD
                     Log.d("gallery", "gallery opened");
 //                    Bundle args = new Bundle();
 //                    args.putParcelable(ARG_GALLARYPIC, photoUri);
@@ -77,6 +84,8 @@ public class MainActivity extends AppCompatActivity {
 //                    mFragmentTransaction.replace(R.id.container_layout, gpf);
 //                    mFragmentTransaction.addToBackStack("").commit();
                     
+=======
+>>>>>>> 839a31c5342abecb38b9e8c077e7b6056c56ce21
                     return true;
             }
             return false;
@@ -88,7 +97,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        final Context context = this;
+        context = this;
+        contentResolver = getContentResolver();
         BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -115,6 +125,7 @@ public class MainActivity extends AppCompatActivity {
         switch (requestCode){
             case PICK_IMAGE:
                 if (resultCode == RESULT_OK) {
+<<<<<<< HEAD
                     photoUri = data.getData();
                     Bundle args = new Bundle();
                     args.putParcelable(ARG_GALLARYPIC, photoUri);
@@ -128,6 +139,13 @@ public class MainActivity extends AppCompatActivity {
                     if (myFile != null) {
                         Medias pic = new Medias(getRealPathFromURI(photoUri));
                         mAdapter.addPic(pic);
+=======
+                    Uri photoUri = data.getData();
+
+                    if(photoUri!=null) {
+                        Log.d("check", "gallery opened for :" + photoUri.toString());
+                        switchToGalaryFragment(photoUri);
+>>>>>>> 839a31c5342abecb38b9e8c077e7b6056c56ce21
                     }
                 }
                 break;
@@ -140,6 +158,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+<<<<<<< HEAD
     private String getRealPathFromURI(Uri contentUri) {
         String[] proj = { MediaStore.Images.Media.DATA };
         CursorLoader loader = new CursorLoader(this, contentUri, proj, null, null, null);
@@ -151,6 +170,17 @@ public class MainActivity extends AppCompatActivity {
         return result;
     }
 
+=======
+    public void switchToGalaryFragment(Uri photoUri){
+        Bundle args = new Bundle();
+        args.putParcelable(ARG_GALLARYPIC, photoUri);
+        gallaryPicFragment gpf = new gallaryPicFragment();
+        gpf.setArguments(args);
+        android.app.FragmentTransaction mFragmentTransaction = getFragmentManager().beginTransaction();
+        mFragmentTransaction.replace(R.id.container_layout, gpf);
+        mFragmentTransaction.addToBackStack("").commit();
+    }
+>>>>>>> 839a31c5342abecb38b9e8c077e7b6056c56ce21
     private void openGallery() {
         Intent gallery = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.INTERNAL_CONTENT_URI);
         startActivityForResult(gallery, PICK_IMAGE);
@@ -225,7 +255,8 @@ public class MainActivity extends AppCompatActivity {
         mWarningIntent.putExtra("URI", mUri);
         mDeletionIntent.putExtra("URI", mUri);
 
-        Log.d("check", "set pendingintent for "+mUri+" Date: "+deletionDate);
+        Log.d("check", "set pendingintent for "+mUri+" Date: "+deletionDate );
+//        Log.d("check", )
         PendingIntent warningPI = PendingIntent.getBroadcast(this, mIndex*10, mWarningIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         PendingIntent deletionPI = PendingIntent.getBroadcast(this, mIndex*10+1, mDeletionIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
@@ -234,8 +265,38 @@ public class MainActivity extends AppCompatActivity {
         alarmManager.set(AlarmManager.RTC_WAKEUP, warningDate, warningPI);
         alarmManager.set(AlarmManager.RTC_WAKEUP, deletionDate, deletionPI);
 
-
         this.warningIntentMap.put(mUri, warningPI);
         this.deletionIntentMap.put(mUri, deletionPI);
     }
+
+    public static void deleteImage(Uri pUri) throws URISyntaxException {
+
+        Uri queryUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+        String selection = MediaStore.Images.Media.DATA + " = ?";
+
+        String[] projection = { MediaStore.Images.Media._ID };
+        String[] selectionArgs = new String[] {PathUtil.getPath(context, pUri)};
+        Cursor c = contentResolver.query(queryUri, projection, selection, selectionArgs, null);
+        if(c.moveToFirst()){
+            long id = c.getLong(c.getColumnIndexOrThrow(MediaStore.Images.Media._ID));
+            Uri deleteUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id);
+            contentResolver.delete(deleteUri, null, null);
+        }
+        c.close();
+
+    }
+
+    /* In-App Camera View Method */
+//    /** A safe way to get an instance of the Camera object. */
+//    public static Camera getCameraInstance(){
+//        Camera c = null;
+//        try {
+//            c = Camera.open(); // attempt to get a Camera instance
+//        }
+//        catch (Exception e){
+//            // Camera is not available (in use or does not exist)
+//        }
+//        return c; // returns null if camera is unavailable
+//    }
+
 }
