@@ -36,6 +36,7 @@ import android.widget.ImageView;
 
 import java.net.URISyntaxException;
 import java.util.Calendar;
+import java.util.Date;
 
 /**
  * Created by parks8 on 2018-04-30.
@@ -87,14 +88,16 @@ public class gallaryPicFragment extends Fragment {
         Log.d("menu", "clicked");
         switch(item.getItemId()){
             case R.id.action_view_lifetime:
-                return true;
+                break;
             case R.id.action_edit_lifetime:
                 addEditPhotoLifeTime(true);
-                return true;
+                break;
             case R.id.action_delete:
                 showDeleteDialog();
-                return true;
+                break;
         }
+        getActivity().getFragmentManager().popBackStack();
+
         return super.onOptionsItemSelected(item);
     }
 
@@ -123,6 +126,7 @@ public class gallaryPicFragment extends Fragment {
         View view = mInflater.inflate(R.layout.dialog_add, null, false);
         builder.setView(view);
         final CalendarView deliveryDateView = (CalendarView) view.findViewById(R.id.calendar_view);
+
         deliveryDateView.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
             @Override
             public void onSelectedDayChange(@NonNull CalendarView view, int year, int month, int dayOfMonth) {
@@ -135,26 +139,15 @@ public class gallaryPicFragment extends Fragment {
         builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-
-                long date = deliveryDateView.getDate();
-                deliveryDateView.getDate();
-                Log.d("alarm", "date selected to :"+deliveryDateView.getDate());
+////                deliveryDateView.getDate();
+//                Log.d("check", "date selected to :"+deliveryDateView.getDate());
 
                 warningCalendar.set(mYear, mMonth, mDate-1, 0, 0, 0);
-                deletionCalendar.set(mYear, mMonth, mDate, 19, 31, 0);
-                Log.d("alarm", "date set to :"+deletionCalendar.getTimeInMillis());
-                ((MainActivity) getActivity()).setIntentArray(warningCalendar.getTimeInMillis(), deletionCalendar.getTimeInMillis(), mUri);
-//                deliveryDateView.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
-//                    @Override
-//                    public void onSelectedDayChange(@NonNull CalendarView view, int year, int month, int dayOfMonth) {
-//                        warningCalendar.set(year, month, dayOfMonth-1, 0, 0, 0);
-//                        deletionCalendar.set(year, month, dayOfMonth, 0, 0, 0);
-//                        Log.d("alarm", "date set to :"+deletionCalendar.getTimeInMillis());
-//                        ((MainActivity) getActivity()).setIntentArray(warningCalendar.getTimeInMillis(), deletionCalendar.getTimeInMillis(), mUri);
-//                    }
-//                });
+                deletionCalendar.set(mYear, mMonth, mDate, 2, 49, 0);
+                Date date = new Date();
 
-//                mPhotoLifetimeRef.push().setValue(mUri.toString(), date);
+                Log.d("check", "date set to :"+deletionCalendar.getTimeInMillis()+" current time: "+ deliveryDateView.getDate()+"  "+deletionCalendar.getTimeInMillis());
+                ((MainActivity) getActivity()).setIntentArray(warningCalendar.getTimeInMillis(), deletionCalendar.getTimeInMillis(), mUri);
             }
         });
         builder.setNeutralButton("delete", new DialogInterface.OnClickListener() {
@@ -167,8 +160,8 @@ public class gallaryPicFragment extends Fragment {
 
         builder.create().show();
     }
-    private void showPhotoLifeTime(){
 
+    private void showPhotoLifeTime(){
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         View view = mInflater.inflate(R.layout.dialog_add, null, false);
         builder.setView(view);
@@ -193,6 +186,7 @@ public class gallaryPicFragment extends Fragment {
             contentResolver.delete(deleteUri, null, null);
         }
         c.close();
+
     }
 
     @Override
