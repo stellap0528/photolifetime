@@ -9,6 +9,8 @@ import android.graphics.Matrix;
 import android.media.ExifInterface;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -31,22 +33,34 @@ import java.util.ArrayList;
 public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> {
 
     Context mContext;
-    Gallery mGallery;
+    ArrayList<Medias> mGallery;
     RecyclerView mRecyclerView;
     Medias mCurrentMedia;
     String mUid;
     DatabaseReference mPhotoLifetimeRef;
     Query mQueryRef;
+    FragmentManager mFM;
 
 //    ArrayList<Medias> mMedias;
 
-    public MediaAdapter(Context context, RecyclerView rView) {
+    public MediaAdapter(Context context, RecyclerView rView, FragmentManager fm) {
         mContext = context;
         mRecyclerView = rView;
-        mGallery = new Gallery();
+        mGallery = new ArrayList<>();
+        mFM = fm;
 //        mUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
         mPhotoLifetimeRef = FirebaseDatabase.getInstance().getReference().child("weatherpics");
         mQueryRef = mPhotoLifetimeRef.orderByChild("uid").equalTo(mUid);
+//        mGallery.mMedia.add(new Medias());
+    }
+
+
+    public MediaAdapter(Context context, RecyclerView rView, FragmentManager fm, ArrayList<Medias> newGallery) {
+        mContext = context;
+        mRecyclerView = rView;
+        mGallery = new ArrayList<>();
+        mFM = fm;
+        mGallery = newGallery;
 //        mGallery.mMedia.add(new Medias());
     }
 
@@ -77,6 +91,8 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
 
         }
     }
+
+
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.media_view, parent, false);
@@ -84,16 +100,14 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
     }
 
     @Override
-        public void onBindViewHolder(ViewHolder holder, int position) {
-        Medias currentMedia = mGallery.mMedia.get(position);
-        if (currentMedia.placehold == R.mipmap.ic_launcher_round) {
+    public void onBindViewHolder(ViewHolder holder, int position) {
+        Medias currentMedia = mGallery.get(position);
+        if (currentMedia.mediaPath != null) {
             //holder.mImageView.setImageResource(R.mipmap.ic_launcher_round);
-        } else {
-
-            Bitmap myBitmap = BitmapFactory.decodeFile(mGallery.mMedia.get(position).mediaPath);
+            Bitmap myBitmap = BitmapFactory.decodeFile(mGallery.get(position).mediaPath);
 
             try {
-                ExifInterface exif = new ExifInterface(mGallery.mMedia.get(position).mediaPath);
+                ExifInterface exif = new ExifInterface(mGallery.get(position).mediaPath);
                 int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, 1);
                 Log.d("EXIF", "Exif: " + orientation);
                 Matrix matrix = new Matrix();
@@ -106,24 +120,22 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
                 else if (orientation == 8) {
                     matrix.postRotate(270);
                 }
-                myBitmap = Bitmap.createBitmap(myBitmap, 0, 0, myBitmap.getWidth(), myBitmap.getHeight(), matrix, true); // rotating bitmap
+                myBitmap = Bitmap.createBitmap(myBitmap, 100, 250, myBitmap.getWidth()/3, myBitmap.getHeight()/2, matrix, true); // rotating bitmap
             }
             catch (Exception e) {
 
             }
-//            myBitmap = Bitmap.createScaledBitmap(myBitmap, 50, 100, true);
             holder.mImageView.setImageBitmap(myBitmap);
-//            holder.mImageView.setImageBitmap(mGallery.mMedia.get(position).thumbnail);
         }
     }
 
     @Override
     public int getItemCount() {
-        return mGallery.mMedia.size();
+        return mGallery.size();
     }
 
     public void addPic(Medias picture) {
-        mGallery.mMedia.add(picture);
+        mGallery.add(picture);
         notifyDataSetChanged();
     }
 
@@ -132,10 +144,20 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
 
         public ViewHolder(final View itemView) {
             super(itemView);
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    ViewImageFrag mImageFragment = new ViewImageFrag().newInstance(mGallery.get(getAdapterPosition()).mediaPath);
+                    FragmentTransaction ft = mFM.beginTransaction();
+                    ft.replace(R.id.container_layout, mImageFragment);
+                    ft.addToBackStack("image");
+                    ft.commit();
+                }
+            });
             itemView.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    mCurrentMedia = mGallery.mMedia.get(getAdapterPosition());
+                    mCurrentMedia = mGallery.get(getAdapterPosition());
                     AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
                     builder.setTitle(R.string.dialog_title);
                     builder.setItems(R.array.dialog_array, new DialogInterface.OnClickListener() {
@@ -173,12 +195,12 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
     }
 
     private void deleteMedia(int adapterPosition) {
-        File file = new File(mGallery.mMedia.get(adapterPosition).mediaPath);
+        File file = new File(mGallery.get(adapterPosition).mediaPath);
         file.delete();
 
         //context.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(new File(photoPath))));
 
-        mGallery.mMedia.remove(adapterPosition);
+        mGallery.remove(adapterPosition);
         notifyDataSetChanged();
     }
 }
