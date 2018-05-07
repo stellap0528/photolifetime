@@ -5,7 +5,9 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
+import android.content.CursorLoader;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
@@ -67,13 +69,13 @@ public class MainActivity extends AppCompatActivity {
 //                    mTextMessage.setText(R.string.gallery_nav_text);
                     openGallery();
                     Log.d("gallery", "gallery opened");
-                    Bundle args = new Bundle();
-                    args.putParcelable(ARG_GALLARYPIC, photoUri);
-                    gallaryPicFragment gpf = new gallaryPicFragment();
-                    gpf.setArguments(args);
-                    android.app.FragmentTransaction mFragmentTransaction = getFragmentManager().beginTransaction();
-                    mFragmentTransaction.replace(R.id.container_layout, gpf);
-                    mFragmentTransaction.addToBackStack("").commit();
+//                    Bundle args = new Bundle();
+//                    args.putParcelable(ARG_GALLARYPIC, photoUri);
+//                    gallaryPicFragment gpf = new gallaryPicFragment();
+//                    gpf.setArguments(args);
+//                    android.app.FragmentTransaction mFragmentTransaction = getFragmentManager().beginTransaction();
+//                    mFragmentTransaction.replace(R.id.container_layout, gpf);
+//                    mFragmentTransaction.addToBackStack("").commit();
                     
                     return true;
             }
@@ -114,6 +116,19 @@ public class MainActivity extends AppCompatActivity {
             case PICK_IMAGE:
                 if (resultCode == RESULT_OK) {
                     photoUri = data.getData();
+                    Bundle args = new Bundle();
+                    args.putParcelable(ARG_GALLARYPIC, photoUri);
+                    gallaryPicFragment gpf = new gallaryPicFragment();
+                    gpf.setArguments(args);
+                    android.app.FragmentTransaction mFragmentTransaction = getFragmentManager().beginTransaction();
+                    mFragmentTransaction.replace(R.id.container_layout, gpf);
+                    mFragmentTransaction.addToBackStack("").commit();
+
+                    File myFile = new File(photoUri.getPath());
+                    if (myFile != null) {
+                        Medias pic = new Medias(getRealPathFromURI(photoUri));
+                        mAdapter.addPic(pic);
+                    }
                 }
                 break;
             case REQUEST_IMAGE_CAPTURE:
@@ -123,6 +138,17 @@ public class MainActivity extends AppCompatActivity {
                 }
                 break;
         }
+    }
+
+    private String getRealPathFromURI(Uri contentUri) {
+        String[] proj = { MediaStore.Images.Media.DATA };
+        CursorLoader loader = new CursorLoader(this, contentUri, proj, null, null, null);
+        Cursor cursor = loader.loadInBackground();
+        int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+        cursor.moveToFirst();
+        String result = cursor.getString(column_index);
+        cursor.close();
+        return result;
     }
 
     private void openGallery() {
