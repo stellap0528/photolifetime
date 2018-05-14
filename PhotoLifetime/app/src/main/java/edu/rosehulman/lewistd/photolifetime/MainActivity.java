@@ -1,5 +1,7 @@
 package edu.rosehulman.lewistd.photolifetime;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -14,6 +16,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
@@ -34,8 +37,11 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 
+import pub.devrel.easypermissions.EasyPermissions;
+
 public class MainActivity extends AppCompatActivity {
 
+    private String[] galleryPermissions = {android.Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE};
     static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int PICK_IMAGE =100;
     String mCurrentPhotoPath;
@@ -73,19 +79,14 @@ public class MainActivity extends AppCompatActivity {
                     return true;
                 case R.id.gallery_button:
 //                    mTextMessage.setText(R.string.gallery_nav_text);
-                    openGallery();
-<<<<<<< HEAD
+                    if (EasyPermissions.hasPermissions(context, galleryPermissions)) {
+                        openGallery();
+                    } else {
+                        EasyPermissions.requestPermissions(context, "Access for storage",
+                                101, galleryPermissions);
+                    }
+//                    openGallery();
                     Log.d("gallery", "gallery opened");
-//                    Bundle args = new Bundle();
-//                    args.putParcelable(ARG_GALLARYPIC, photoUri);
-//                    gallaryPicFragment gpf = new gallaryPicFragment();
-//                    gpf.setArguments(args);
-//                    android.app.FragmentTransaction mFragmentTransaction = getFragmentManager().beginTransaction();
-//                    mFragmentTransaction.replace(R.id.container_layout, gpf);
-//                    mFragmentTransaction.addToBackStack("").commit();
-                    
-=======
->>>>>>> 839a31c5342abecb38b9e8c077e7b6056c56ce21
                     return true;
             }
             return false;
@@ -125,28 +126,31 @@ public class MainActivity extends AppCompatActivity {
         switch (requestCode){
             case PICK_IMAGE:
                 if (resultCode == RESULT_OK) {
-<<<<<<< HEAD
-                    photoUri = data.getData();
-                    Bundle args = new Bundle();
-                    args.putParcelable(ARG_GALLARYPIC, photoUri);
-                    gallaryPicFragment gpf = new gallaryPicFragment();
-                    gpf.setArguments(args);
-                    android.app.FragmentTransaction mFragmentTransaction = getFragmentManager().beginTransaction();
-                    mFragmentTransaction.replace(R.id.container_layout, gpf);
-                    mFragmentTransaction.addToBackStack("").commit();
 
-                    File myFile = new File(photoUri.getPath());
-                    if (myFile != null) {
-                        Medias pic = new Medias(getRealPathFromURI(photoUri));
-                        mAdapter.addPic(pic);
-=======
-                    Uri photoUri = data.getData();
+                        photoUri = data.getData();
+                        if (photoUri != null) {
+                            Log.d("check", "gallery opened for :" + photoUri.toString());
+                            switchToGalaryFragment(photoUri);
 
-                    if(photoUri!=null) {
-                        Log.d("check", "gallery opened for :" + photoUri.toString());
-                        switchToGalaryFragment(photoUri);
->>>>>>> 839a31c5342abecb38b9e8c077e7b6056c56ce21
-                    }
+                            // Get image path from media store
+                            String[] filePathColumn = { android.provider.MediaStore.MediaColumns.DATA };
+                            Cursor cursor = this.getContentResolver().query(photoUri, filePathColumn, null, null, null);
+
+                            if(cursor == null || !cursor.moveToFirst()) {
+                                // (code to show error message goes here)
+                                return;
+                            }
+
+                            int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+                            String imagePath = cursor.getString(columnIndex);
+                            cursor.close();
+                            mAdapter.addPic(new Medias(imagePath));
+                            if (imagePath == null) {
+                                // error happens here
+                                Log.d("PATH_NULL", "Image path is still null.");
+                            }
+//                            mAdapter.addPic(new Medias());
+                        }
                 }
                 break;
             case REQUEST_IMAGE_CAPTURE:
@@ -158,19 +162,21 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-<<<<<<< HEAD
-    private String getRealPathFromURI(Uri contentUri) {
-        String[] proj = { MediaStore.Images.Media.DATA };
-        CursorLoader loader = new CursorLoader(this, contentUri, proj, null, null, null);
-        Cursor cursor = loader.loadInBackground();
-        int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-        cursor.moveToFirst();
-        String result = cursor.getString(column_index);
-        cursor.close();
+
+    private String getRealPathFromURI(Uri contentURI) {
+        String result;
+        Cursor cursor = getContentResolver().query(contentURI, null, null, null, null);
+        if (cursor == null) { // Source is Dropbox or other similar local file path
+            result = contentURI.getPath();
+        } else {
+            cursor.moveToFirst();
+            int idx = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
+            result = cursor.getString(idx);
+            cursor.close();
+        }
         return result;
     }
 
-=======
     public void switchToGalaryFragment(Uri photoUri){
         Bundle args = new Bundle();
         args.putParcelable(ARG_GALLARYPIC, photoUri);
@@ -180,7 +186,7 @@ public class MainActivity extends AppCompatActivity {
         mFragmentTransaction.replace(R.id.container_layout, gpf);
         mFragmentTransaction.addToBackStack("").commit();
     }
->>>>>>> 839a31c5342abecb38b9e8c077e7b6056c56ce21
+
     private void openGallery() {
         Intent gallery = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.INTERNAL_CONTENT_URI);
         startActivityForResult(gallery, PICK_IMAGE);
