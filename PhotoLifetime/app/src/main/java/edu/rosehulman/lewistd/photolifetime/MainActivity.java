@@ -96,6 +96,9 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    public MediaAdapter getAdapter(){
+        return this.mAdapter;
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -124,42 +127,44 @@ public class MainActivity extends AppCompatActivity {
         indexMap = new HashMap<>();
 
     }
-    protected void onActivityResult(int requestCode, int resultCode, Intent data){
+    public void onActivityResult(int requestCode, int resultCode, Intent data){
         super.onActivityResult(requestCode, resultCode, data);
         switch (requestCode){
             case PICK_IMAGE:
                 if (resultCode == RESULT_OK) {
+                    photoUri = data.getData();
+                    if (photoUri != null) {
+                        Log.d("check", "gallery opened for :" + photoUri.toString());
 
-                        photoUri = data.getData();
-                        if (photoUri != null) {
-                            Log.d("check", "gallery opened for :" + photoUri.toString());
-                            switchToGalaryFragment(photoUri);
+                        switchToGalaryFragment(photoUri);
 
-                            // Get image path from media store
-                            String[] filePathColumn = { android.provider.MediaStore.MediaColumns.DATA };
-                            Cursor cursor = this.getContentResolver().query(photoUri, filePathColumn, null, null, null);
+                        // Get image path from media store
+                        String[] filePathColumn = { android.provider.MediaStore.MediaColumns.DATA };
+                        Cursor cursor = getContentResolver().query(photoUri, filePathColumn, null, null, null);
 
-                            if(cursor == null || !cursor.moveToFirst()) {
-                                // (code to show error message goes here)
-                                return;
-                            }
-
-                            int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-                            String imagePath = cursor.getString(columnIndex);
-                            cursor.close();
-                            mAdapter.addPic(new Medias(imagePath));
-                            if (imagePath == null) {
-                                // error happens here
-                                Log.d("PATH_NULL", "Image path is still null.");
-                            }
-//                            mAdapter.addPic(new Medias());
+                        if(cursor == null || !cursor.moveToFirst()) {
+                            return;
                         }
+
+                        int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+                        String imagePath = cursor.getString(columnIndex);
+                        cursor.close();
+                        if (imagePath == null) {
+                            // error happens here
+                            Log.d("PATH_NULL", "Image path is still null.");
+                        }
+//                            mAdapter.addPic(new Medias());
+                    }
                 }
                 break;
             case REQUEST_IMAGE_CAPTURE:
                 if (resultCode == RESULT_OK) {
-                    Medias pic = new Medias(mCurrentPhotoPath);
-                    mAdapter.addPic(pic);
+                    File f = new File(mCurrentPhotoPath);
+                    Uri contentUri = Uri.fromFile(f);
+                    switchToGalaryFragment(contentUri);
+
+//                    Medias pic = new Medias(mCurrentPhotoPath);
+//                    mAdapter.addPic(pic);
                 }
                 break;
         }

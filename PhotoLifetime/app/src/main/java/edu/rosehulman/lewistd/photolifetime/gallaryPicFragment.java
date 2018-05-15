@@ -1,5 +1,6 @@
 package edu.rosehulman.lewistd.photolifetime;
 
+import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 
@@ -52,7 +53,6 @@ public class gallaryPicFragment extends Fragment {
     private Calendar deletionCalendar = Calendar.getInstance();
     private Calendar warningCalendar = Calendar.getInstance();
     private Context context;
-    private PhotoLifeTime mCurrentItem;
 
     int mYear;
     int mDate;
@@ -60,7 +60,8 @@ public class gallaryPicFragment extends Fragment {
     private int index;
 
     public gallaryPicFragment(){}
-
+    private Activity mActivity;
+    private MediaAdapter mAdapter;
     AlarmManager alarmManager;
 
     @Override
@@ -72,9 +73,8 @@ public class gallaryPicFragment extends Fragment {
         mUri = getArguments().getParcelable(MainActivity.ARG_GALLARYPIC);
         mGalleryPicView.setImageDrawable(null);
         mGalleryPicView.setImageURI(mUri);
-        mPhotoLifetimeRef = FirebaseDatabase.getInstance().getReference().child("PhotoLifetime");
-        mChildEventListener = new PhotoLifeTimeChildEventListener();
-        mPhotoLifetimeRef.addChildEventListener(mChildEventListener);
+        mActivity = getActivity();
+        mAdapter = ((MainActivity)mActivity).getAdapter();
         setHasOptionsMenu(true);
         this.context = getContext();
 
@@ -88,6 +88,7 @@ public class gallaryPicFragment extends Fragment {
         Log.d("menu", "clicked");
         switch(item.getItemId()){
             case R.id.action_view_lifetime:
+                showPhotoLifeTime();
                 break;
             case R.id.action_edit_lifetime:
                 addEditPhotoLifeTime(true);
@@ -139,37 +140,44 @@ public class gallaryPicFragment extends Fragment {
         builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-////                deliveryDateView.getDate();
-//                Log.d("check", "date selected to :"+deliveryDateView.getDate());
 
                 warningCalendar.set(mYear, mMonth, mDate-1, 0, 0, 0);
                 deletionCalendar.set(mYear, mMonth, mDate, 2, 49, 0);
                 Date date = new Date();
 
                 Log.d("check", "date set to :"+deletionCalendar.getTimeInMillis()+" current time: "+ deliveryDateView.getDate()+"  "+deletionCalendar.getTimeInMillis());
-                ((MainActivity) getActivity()).setIntentArray(warningCalendar.getTimeInMillis(), deletionCalendar.getTimeInMillis(), mUri);
+                ((MainActivity) mActivity).setIntentArray(warningCalendar.getTimeInMillis(), deletionCalendar.getTimeInMillis(), mUri);
+                Log.d("photopath", mUri.getPath());
+                mAdapter.addPic(new Medias(mUri.getPath(), deletionCalendar.getTimeInMillis()));
             }
         });
         builder.setNeutralButton("delete", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                ((MainActivity) getActivity()).deleteAlarm(mUri);
+                ((MainActivity) mActivity).deleteAlarm(mUri);
             }
         });
         builder.setNegativeButton(android.R.string.cancel, null);
 
         builder.create().show();
     }
-
     private void showPhotoLifeTime(){
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        View view = mInflater.inflate(R.layout.dialog_add, null, false);
-        builder.setView(view);
-        final CalendarView deliveryDateView = (CalendarView) view.findViewById(R.id.calendar_view);
         builder.setNegativeButton(R.string.done, null);
-        deliveryDateView.setDate(mCurrentItem.getTimeStamp());
-        builder.create().show();
+        if(mAdapter.containsPic(mUri)!=0){
+            View view = mInflater.inflate(R.layout.dialog_add, null, false);
+            builder.setView(view);
+            final CalendarView deliveryDateView = (CalendarView) view.findViewById(R.id.calendar_view);
+            deliveryDateView.setDate(mAdapter.containsPic(mUri));
+            builder.create().show();
+        }else{
+            builder.setTitle("No LifeTime");
+            builder.setMessage("This photo does not have lifetime yet");
+            builder.setNegativeButton(android.R.string.cancel, null);
+            builder.create().show();
+        }
     }
+
 
 
     public void deleteImage(Uri pUri) throws URISyntaxException {
@@ -197,34 +205,4 @@ public class gallaryPicFragment extends Fragment {
     }
 
 
-    private class PhotoLifeTimeChildEventListener implements ChildEventListener {
-        @Override
-        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-            PhotoLifeTime plt = dataSnapshot.getValue(PhotoLifeTime.class);
-            plt.setKey(dataSnapshot.getKey());
-
-        }
-
-        @Override
-        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-            String key = dataSnapshot.getKey();
-            PhotoLifeTime newPLT = dataSnapshot.getValue(PhotoLifeTime.class);
-
-        }
-
-        @Override
-        public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-        }
-
-        @Override
-        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-        }
-
-        @Override
-        public void onCancelled(DatabaseError databaseError) {
-
-        }
-    }
 }

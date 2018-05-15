@@ -222,4 +222,14 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
         mGallery.remove(adapterPosition);
         notifyDataSetChanged();
     }
+
+
+    public long containsPic(Uri mUri){
+        String path =  mUri.getPath();
+        for(Medias media : mGallery){
+            if(media.mediaPath == path)
+                return media.deletionTime;
+        }
+        return 0;
+    }
 }
