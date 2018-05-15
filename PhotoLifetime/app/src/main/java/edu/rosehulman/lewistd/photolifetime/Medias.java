@@ -7,7 +7,7 @@ import android.os.Parcelable;
 
 import java.io.File;
 
-public class Medias{
+public class Medias implements Parcelable{
 
 
     Uri mediaPath;
@@ -25,27 +25,22 @@ public class Medias{
         this.deletionTime = deletionTime;
     }
 
-//    protected Medias(Parcel in){
-//        mediaPath = in.readString();
-//        deletionTime = in.readLong();
-//        uid = in.readString();
-//    }
-//    @Override
-//    public int describeContents() {
-//        return 0;
-//    }
+    protected Medias(Parcel in){
+        mediaPath = in.readParcelable(Medias.class.getClassLoader());
+        deletionTime = in.readLong();
+    }
 
-//    public static final Parcelable.Creator<Medias> CREATOR = new Parcelable.Creator<Medias>() {
-//        @Override
-//        public Medias createFromParcel(Parcel in) {
-//            return new Medias(in);
-//        }
-//
-//        @Override
-//        public Medias[] newArray(int size) {
-//            return new Medias[size];
-//        }
-//    };
+    public static final Parcelable.Creator<Medias> CREATOR = new Parcelable.Creator<Medias>() {
+        @Override
+        public Medias createFromParcel(Parcel in) {
+            return new Medias(in);
+        }
+
+        @Override
+        public Medias[] newArray(int size) {
+            return new Medias[size];
+        }
+    };
 
     public Uri getMediaPath(){return mediaPath;}
 
@@ -78,11 +73,16 @@ public class Medias{
         this.deletionTime = deletionTime;
     }
 
-//    @Override
-//    public void writeToParcel(Parcel dest, int flags) {
-//        dest.writeString(mediaPath);
-//        dest.writeLong(deletionTime);
-//    }
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeParcelable(mediaPath, flags);
+        dest.writeLong(deletionTime);
+    }
 
 
 }

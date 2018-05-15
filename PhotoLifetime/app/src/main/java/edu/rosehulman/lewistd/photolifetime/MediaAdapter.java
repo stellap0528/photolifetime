@@ -53,30 +53,33 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
     FragmentManager mFM;
     LayoutInflater mInflater;
     Activity mActivity;
+    ImageListFragment.Callback mCallback;
 //    ArrayList<Medias> mMedias;
 
-    public MediaAdapter(Context context, Activity activity, RecyclerView rView, FragmentManager fm) {
-        mActivity = activity;
+    public MediaAdapter(Context context, ImageListFragment.Callback callback) {
+//        mActivity = activity;
         mContext = context;
-        mRecyclerView = rView;
+        mCallback = callback;
+//        mRecyclerView = rView;
         mGallery = new ArrayList<>();
-        mFM = fm;
         mInflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 //        mUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
         mPhotoLifetimeRef = FirebaseDatabase.getInstance().getReference().child("weatherpics");
+        
         mQueryRef = mPhotoLifetimeRef.orderByChild("uid").equalTo(mUid);
 //        mGallery.mMedia.add(new Medias());
     }
 
 
-    public MediaAdapter(Context context, RecyclerView rView, FragmentManager fm, ArrayList<Medias> newGallery) {
-        mContext = context;
-        mRecyclerView = rView;
-        mGallery = new ArrayList<>();
-        mFM = fm;
-        mGallery = newGallery;
-//        mGallery.mMedia.add(new Medias());
-    }
+
+//    public MediaAdapter(Context context, RecyclerView rView, FragmentManager fm, ArrayList<Medias> newGallery) {
+//        mContext = context;
+//        mRecyclerView = rView;
+//        mGallery = new ArrayList<>();
+//        mFM = fm;
+//        mGallery = newGallery;
+////        mGallery.mMedia.add(new Medias());
+//    }
 
     class MediaEventListener implements ChildEventListener{
 
@@ -137,11 +140,12 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    ViewImageFrag mImageFragment = new ViewImageFrag().newInstance(mGallery.get(getAdapterPosition()).mediaPath);
-                    FragmentTransaction ft = mFM.beginTransaction();
-                    ft.replace(R.id.container_layout, mImageFragment);
-                    ft.addToBackStack("image");
-                    ft.commit();
+                    mCallback.onDocSelected(mGallery.get(getAdapterPosition()).getMediaPath());
+//                    ViewImageFrag mImageFragment = new ViewImageFrag().newInstance(mGallery.get(getAdapterPosition()).mediaPath);
+//                    FragmentTransaction ft = mFM.beginTransaction();
+//                    ft.replace(R.id.container_layout, mImageFragment);
+//                    ft.addToBackStack("image");
+//                    ft.commit();
                 }
             });
             itemView.setOnLongClickListener(new View.OnLongClickListener() {
@@ -187,7 +191,7 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
                                         intentShareFile.putExtra(Intent.EXTRA_TEXT, "Sharing File...");
 
                                         mContext.startActivity(Intent.createChooser(intentShareFile, "Share File"));
-                                     
+
                                     break;
                             }
 
@@ -231,9 +235,7 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
 
                 Log.d("check", "date set to :"+deletionCalendar.getTimeInMillis()+" current time: "+ deliveryDateView.getDate()+"  "+deletionCalendar.getTimeInMillis());
                 ((MainActivity) mActivity).setIntentArray(warningCalendar.getTimeInMillis(), deletionCalendar.getTimeInMillis(), mUri);
-                if(containsPic(mUri)==-1)
-                    addPic(new Medias(mUri, deletionCalendar.getTimeInMillis()));
-                else
+
                     setPicTime(mUri, deletionCalendar.getTimeInMillis());
             }
         });
@@ -287,4 +289,9 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
                 media.setDeletionTime(deletionTime);
         }
     }
+
+    public interface Callback{
+        MediaAdapter getAdapter();
+    }
+
 }

@@ -20,7 +20,7 @@ import android.widget.ImageView;
  * A simple {@link Fragment} subclass.
  */
 public class ViewImageFrag extends Fragment {
-    private static final String ARG_PATH = "path";
+    private static final String ARG_PATH = "URI";
     private Uri mPath;
 
     public ViewImageFrag() {
@@ -30,7 +30,7 @@ public class ViewImageFrag extends Fragment {
     public static ViewImageFrag newInstance(Uri mPath) {
         ViewImageFrag frag = new ViewImageFrag();
         Bundle args = new Bundle();
-        args.putParcelable(ARG_PATH, mPath);
+        args.putString(ARG_PATH, mPath.toString());
         frag.setArguments(args);
         return frag;
     }

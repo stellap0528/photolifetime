@@ -9,6 +9,14 @@
     <string name="view">View Lifetime</string>
     <string name="edit">Edit Lifetime</string>
     <string name="delete">Delete</string>
+    <string name="invalid_email_or_password">Invalid email or password!</string>
+
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Password</string>
+    <string name="action_sign_in">Login</string>
+    <string name="empty_email_password">Please, provide email and password</string>
+    <string name="invalid_email">Invalid email!</string>
+    <string name="invalid_password">Password is too short</string>
     <string name="delete_message">Would you like to delete the image?</string>
     <string name="done">DONE</string>
     <string name="dialog_title">Choose an option</string>
