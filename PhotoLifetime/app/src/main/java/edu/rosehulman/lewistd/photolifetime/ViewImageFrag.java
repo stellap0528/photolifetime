@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.media.ExifInterface;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.internal.BottomNavigationItemView;
 import android.support.v4.app.Fragment;
@@ -20,16 +21,16 @@ import android.widget.ImageView;
  */
 public class ViewImageFrag extends Fragment {
     private static final String ARG_PATH = "path";
-    private String mPath;
+    private Uri mPath;
 
     public ViewImageFrag() {
         // Required empty public constructor
     }
 
-    public static ViewImageFrag newInstance(String mPath) {
+    public static ViewImageFrag newInstance(Uri mPath) {
         ViewImageFrag frag = new ViewImageFrag();
         Bundle args = new Bundle();
-        args.putString(ARG_PATH, mPath);
+        args.putParcelable(ARG_PATH, mPath);
         frag.setArguments(args);
         return frag;
     }
@@ -38,7 +39,7 @@ public class ViewImageFrag extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mPath = getArguments().getString(ARG_PATH);
+            mPath = getArguments().getParcelable(ARG_PATH);
         }
     }
 
@@ -49,27 +50,27 @@ public class ViewImageFrag extends Fragment {
         // Inflate the layout for this fragment
         View imageView = inflater.inflate(R.layout.fragment_view_image, container, false);
         ImageView iView = imageView.findViewById(R.id.imageView2);
-        Bitmap myBitmap = BitmapFactory.decodeFile(mPath);
-        try {
-            ExifInterface exif = new ExifInterface(mPath);
-            int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, 1);
-            Log.d("EXIF", "Exif: " + orientation);
-            Matrix matrix = new Matrix();
-            if (orientation == 6) {
-                matrix.postRotate(90);
-            }
-            else if (orientation == 3) {
-                matrix.postRotate(180);
-            }
-            else if (orientation == 8) {
-                matrix.postRotate(270);
-            }
-            myBitmap = Bitmap.createBitmap(myBitmap, 0, 0, myBitmap.getWidth(), myBitmap.getHeight(), matrix, true); // rotating bitmap
-        }
-        catch (Exception e) {
-
-        }
-        iView.setImageBitmap(myBitmap);
+//        Bitmap myBitmap = BitmapFactory.decodeFile(mPath);
+//        try {
+//            ExifInterface exif = new ExifInterface(mPath);
+//            int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, 1);
+//            Log.d("EXIF", "Exif: " + orientation);
+//            Matrix matrix = new Matrix();
+//            if (orientation == 6) {
+//                matrix.postRotate(90);
+//            }
+//            else if (orientation == 3) {
+//                matrix.postRotate(180);
+//            }
+//            else if (orientation == 8) {
+//                matrix.postRotate(270);
+//            }
+//            myBitmap = Bitmap.createBitmap(myBitmap, 0, 0, myBitmap.getWidth(), myBitmap.getHeight(), matrix, true); // rotating bitmap
+//        }
+//        catch (Exception e) {
+//
+//        }
+        iView.setImageURI(mPath);
         return imageView;
     }
 

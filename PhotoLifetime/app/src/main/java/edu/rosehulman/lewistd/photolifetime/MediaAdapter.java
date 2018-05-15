@@ -1,5 +1,6 @@
 package edu.rosehulman.lewistd.photolifetime;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -9,6 +10,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.media.ExifInterface;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentManager;
@@ -18,6 +20,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CalendarView;
 import android.widget.ImageView;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -30,26 +33,35 @@ import com.google.firebase.database.Query;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 
 
 public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> {
 
+    int mYear,mMonth,mDate;
     Context mContext;
     ArrayList<Medias> mGallery;
     RecyclerView mRecyclerView;
     Medias mCurrentMedia;
     String mUid;
+
+    private Calendar deletionCalendar = Calendar.getInstance();
+    private Calendar warningCalendar = Calendar.getInstance();
     DatabaseReference mPhotoLifetimeRef;
     Query mQueryRef;
     FragmentManager mFM;
-
+    LayoutInflater mInflater;
+    Activity mActivity;
 //    ArrayList<Medias> mMedias;
 
-    public MediaAdapter(Context context, RecyclerView rView, FragmentManager fm) {
+    public MediaAdapter(Context context, Activity activity, RecyclerView rView, FragmentManager fm) {
+        mActivity = activity;
         mContext = context;
         mRecyclerView = rView;
         mGallery = new ArrayList<>();
         mFM = fm;
+        mInflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 //        mUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
         mPhotoLifetimeRef = FirebaseDatabase.getInstance().getReference().child("weatherpics");
         mQueryRef = mPhotoLifetimeRef.orderByChild("uid").equalTo(mUid);
@@ -104,31 +116,7 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         Medias currentMedia = mGallery.get(position);
-        if (currentMedia.mediaPath != null) {
-            //holder.mImageView.setImageResource(R.mipmap.ic_launcher_round);
-            Bitmap myBitmap = BitmapFactory.decodeFile(mGallery.get(position).mediaPath);
-
-            try {
-                ExifInterface exif = new ExifInterface(mGallery.get(position).mediaPath);
-                int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, 1);
-                Log.d("EXIF", "Exif: " + orientation);
-                Matrix matrix = new Matrix();
-                if (orientation == 6) {
-                    matrix.postRotate(90);
-                }
-                else if (orientation == 3) {
-                    matrix.postRotate(180);
-                }
-                else if (orientation == 8) {
-                    matrix.postRotate(270);
-                }
-                myBitmap = Bitmap.createBitmap(myBitmap, 100, 250, myBitmap.getWidth()/3, myBitmap.getHeight()/2, matrix, true); // rotating bitmap
-            }
-            catch (Exception e) {
-
-            }
-            holder.mImageView.setImageBitmap(myBitmap);
-        }
+        holder.mImageView.setImageURI(mGallery.get(position).mediaPath);
     }
 
     @Override
@@ -167,8 +155,10 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
                         public void onClick(DialogInterface dialog, int which) {
                             switch (which) {
                                 case 0:
+                                    showPhotoLifeTime(mCurrentMedia.getMediaPath());
                                     break;
                                 case 1:
+                                    addEditPhotoLifeTime(mCurrentMedia.getMediaPath());
                                     break;
                                 case 2:
                                     AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
@@ -186,19 +176,18 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
                                     break;
                                 case 3:
                                     Intent intentShareFile = new Intent(Intent.ACTION_SEND);
-                                    String myFilePath = mGallery.get(getAdapterPosition()).mediaPath;
-                                    File fileWithinMyDir = new File(myFilePath);
+                                    Uri myFilePath = mGallery.get(getAdapterPosition()).mediaPath;
 
-                                    if(fileWithinMyDir.exists()) {
+
                                         intentShareFile.setType("image/jpeg");
-                                        intentShareFile.putExtra(Intent.EXTRA_STREAM, Uri.parse("file://"+myFilePath));
+                                        intentShareFile.putExtra(Intent.EXTRA_STREAM, myFilePath);
 
                                         intentShareFile.putExtra(Intent.EXTRA_SUBJECT,
                                                 "Sharing File...");
                                         intentShareFile.putExtra(Intent.EXTRA_TEXT, "Sharing File...");
 
                                         mContext.startActivity(Intent.createChooser(intentShareFile, "Share File"));
-                                    }
+                                     
                                     break;
                             }
 
@@ -213,23 +202,89 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
         }
     }
 
+    private void addEditPhotoLifeTime(final Uri mUri){
+        android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(mContext);
+        View view = mInflater.inflate(R.layout.dialog_add, null, false);
+        builder.setView(view);
+        final CalendarView deliveryDateView = (CalendarView) view.findViewById(R.id.calendar_view);
+
+
+        if(this.containsPic(mUri)!=-1){
+            deliveryDateView.setDate(this.containsPic(mUri));
+        }
+        deliveryDateView.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
+            @Override
+            public void onSelectedDayChange(@NonNull CalendarView view, int year, int month, int dayOfMonth) {
+                mYear = year;
+                mMonth = month;
+                mDate = dayOfMonth;
+            }
+        });
+
+        builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+                warningCalendar.set(mYear, mMonth, mDate-1, 0, 0, 0);
+                deletionCalendar.set(mYear, mMonth, mDate, 2, 49, 0);
+                Date date = new Date();
+
+                Log.d("check", "date set to :"+deletionCalendar.getTimeInMillis()+" current time: "+ deliveryDateView.getDate()+"  "+deletionCalendar.getTimeInMillis());
+                ((MainActivity) mActivity).setIntentArray(warningCalendar.getTimeInMillis(), deletionCalendar.getTimeInMillis(), mUri);
+                if(containsPic(mUri)==-1)
+                    addPic(new Medias(mUri, deletionCalendar.getTimeInMillis()));
+                else
+                    setPicTime(mUri, deletionCalendar.getTimeInMillis());
+            }
+        });
+        builder.setNeutralButton("delete", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                ((MainActivity) mActivity).deleteAlarm(mUri);
+                setPicTime(mUri, -1);
+            }
+        });
+        builder.setNegativeButton(android.R.string.cancel, null);
+
+        builder.create().show();
+    }
+
+    private void showPhotoLifeTime(Uri mUri){
+        android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(mContext);
+        builder.setNegativeButton(R.string.done, null);
+        if(this.containsPic(mUri)!=-1){
+            View view = mInflater.inflate(R.layout.dialog_add, null, false);
+            builder.setView(view);
+            final CalendarView deliveryDateView = (CalendarView) view.findViewById(R.id.calendar_view);
+            deliveryDateView.setDate(this.containsPic(mUri));
+            builder.create().show();
+        }else{
+            builder.setTitle("No LifeTime");
+            builder.setMessage("This photo does not have lifetime yet");
+            builder.setNegativeButton(android.R.string.cancel, null);
+            builder.create().show();
+        }
+    }
+
     private void deleteMedia(int adapterPosition) {
-        File file = new File(mGallery.get(adapterPosition).mediaPath);
-        file.delete();
-
-        //context.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(new File(photoPath))));
-
         mGallery.remove(adapterPosition);
+        ((MainActivity)mActivity).deleteAlarm(mGallery.get(adapterPosition).getMediaPath());
         notifyDataSetChanged();
     }
 
 
     public long containsPic(Uri mUri){
-        String path =  mUri.getPath();
         for(Medias media : mGallery){
-            if(media.mediaPath == path)
+            if(media.mediaPath == mUri)
                 return media.deletionTime;
         }
-        return 0;
+        return -1;
+    }
+
+    public void setPicTime(Uri mUri, long deletionTime){
+        for(Medias media : mGallery){
+            if(media.mediaPath == mUri)
+                media.setDeletionTime(deletionTime);
+        }
     }
 }

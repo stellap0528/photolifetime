@@ -1,15 +1,16 @@
 package edu.rosehulman.lewistd.photolifetime;
 
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
 
 import java.io.File;
 
-public class Medias implements Parcelable{
+public class Medias{
 
 
-    String mediaPath;
+    Uri mediaPath;
     long deletionTime;
     String uid;
     String key;
@@ -19,34 +20,34 @@ public class Medias implements Parcelable{
 
     }
 
-    public Medias(String path, long deletionTime) {
+    public Medias(Uri path, long deletionTime) {
         this.mediaPath = path;
         this.deletionTime = deletionTime;
     }
 
-    protected Medias(Parcel in){
-        mediaPath = in.readString();
-        deletionTime = in.readLong();
-        uid = in.readString();
-    }
-    @Override
-    public int describeContents() {
-        return 0;
-    }
+//    protected Medias(Parcel in){
+//        mediaPath = in.readString();
+//        deletionTime = in.readLong();
+//        uid = in.readString();
+//    }
+//    @Override
+//    public int describeContents() {
+//        return 0;
+//    }
 
-    public static final Parcelable.Creator<Medias> CREATOR = new Parcelable.Creator<Medias>() {
-        @Override
-        public Medias createFromParcel(Parcel in) {
-            return new Medias(in);
-        }
+//    public static final Parcelable.Creator<Medias> CREATOR = new Parcelable.Creator<Medias>() {
+//        @Override
+//        public Medias createFromParcel(Parcel in) {
+//            return new Medias(in);
+//        }
+//
+//        @Override
+//        public Medias[] newArray(int size) {
+//            return new Medias[size];
+//        }
+//    };
 
-        @Override
-        public Medias[] newArray(int size) {
-            return new Medias[size];
-        }
-    };
-
-    public String getMediaPath(){return mediaPath;}
+    public Uri getMediaPath(){return mediaPath;}
 
     public String getUid(){return this.uid;}
 
@@ -65,7 +66,7 @@ public class Medias implements Parcelable{
         this.deletionTime = media.getDeletionTime();
     }
 
-    public void setMediaPath(String mediaPath){
+    public void setMediaPath(Uri mediaPath){
         this.mediaPath = mediaPath;
     }
 
@@ -77,11 +78,11 @@ public class Medias implements Parcelable{
         this.deletionTime = deletionTime;
     }
 
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(mediaPath);
-        dest.writeLong(deletionTime);
-    }
+//    @Override
+//    public void writeToParcel(Parcel dest, int flags) {
+//        dest.writeString(mediaPath);
+//        dest.writeLong(deletionTime);
+//    }
 
 
 }

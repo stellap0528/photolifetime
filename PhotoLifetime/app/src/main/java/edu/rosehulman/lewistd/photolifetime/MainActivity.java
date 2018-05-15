@@ -114,7 +114,7 @@ public class MainActivity extends AppCompatActivity {
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
         recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
         recyclerView.setHasFixedSize(true);
-        mAdapter = new MediaAdapter(this, recyclerView, getSupportFragmentManager());
+        mAdapter = new MediaAdapter(this, this, recyclerView, getSupportFragmentManager());
         recyclerView.setAdapter(mAdapter);
 
         //alarm intentv
@@ -279,7 +279,14 @@ public class MainActivity extends AppCompatActivity {
         alarmManager.set(AlarmManager.RTC_WAKEUP, warningDate, warningPI);
         alarmManager.set(AlarmManager.RTC_WAKEUP, deletionDate, deletionPI);
 
+        if(this.warningIntentMap.containsKey(mUri)){
+            this.warningIntentMap.get(mUri).cancel();
+        }
         this.warningIntentMap.put(mUri, warningPI);
+
+        if(this.deletionIntentMap.containsKey(mUri)){
+            this.deletionIntentMap.get(mUri).cancel();
+        }
         this.deletionIntentMap.put(mUri, deletionPI);
     }
 

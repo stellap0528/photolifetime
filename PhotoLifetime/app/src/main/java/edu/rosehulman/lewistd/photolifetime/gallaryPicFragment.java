@@ -148,7 +148,7 @@ public class gallaryPicFragment extends Fragment {
                 Log.d("check", "date set to :"+deletionCalendar.getTimeInMillis()+" current time: "+ deliveryDateView.getDate()+"  "+deletionCalendar.getTimeInMillis());
                 ((MainActivity) mActivity).setIntentArray(warningCalendar.getTimeInMillis(), deletionCalendar.getTimeInMillis(), mUri);
                 Log.d("photopath", mUri.getPath());
-                mAdapter.addPic(new Medias(mUri.getPath(), deletionCalendar.getTimeInMillis()));
+                mAdapter.addPic(new Medias(mUri, deletionCalendar.getTimeInMillis()));
             }
         });
         builder.setNeutralButton("delete", new DialogInterface.OnClickListener() {
