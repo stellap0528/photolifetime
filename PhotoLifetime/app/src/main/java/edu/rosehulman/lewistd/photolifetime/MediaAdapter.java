@@ -3,10 +3,12 @@ package edu.rosehulman.lewistd.photolifetime;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.media.ExifInterface;
+import android.net.Uri;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentManager;
@@ -182,7 +184,24 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
                                     builder.setNegativeButton(android.R.string.no, null);
                                     builder.create().show();
                                     break;
+                                case 3:
+                                    Intent intentShareFile = new Intent(Intent.ACTION_SEND);
+                                    String myFilePath = mGallery.get(getAdapterPosition()).mediaPath;
+                                    File fileWithinMyDir = new File(myFilePath);
+
+                                    if(fileWithinMyDir.exists()) {
+                                        intentShareFile.setType("image/jpeg");
+                                        intentShareFile.putExtra(Intent.EXTRA_STREAM, Uri.parse("file://"+myFilePath));
+
+                                        intentShareFile.putExtra(Intent.EXTRA_SUBJECT,
+                                                "Sharing File...");
+                                        intentShareFile.putExtra(Intent.EXTRA_TEXT, "Sharing File...");
+
+                                        mContext.startActivity(Intent.createChooser(intentShareFile, "Share File"));
+                                    }
+                                    break;
                             }
+
                         }
                     });
                     builder.setNegativeButton(android.R.string.cancel, null);
