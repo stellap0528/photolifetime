@@ -26,7 +26,7 @@ import static edu.rosehulman.lewistd.photolifetime.MainActivity.ARG_GALLARYPIC;
  * Created by parks8 on 5/6/2018.
  */
 
-class DeletionReceiver extends BroadcastReceiver{
+public class DeletionReceiver extends BroadcastReceiver{
 
     Uri mUri;
 
@@ -64,6 +64,7 @@ class DeletionReceiver extends BroadcastReceiver{
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.notify((int) ((new Date().getTime() / 1000L) % Integer.MAX_VALUE), builder.build());
         MainActivity.deleteImage(mUri);
+        MainActivity.getAdapter().deleteMedia(mUri);
     }
 
 

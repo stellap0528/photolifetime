@@ -1,19 +1,15 @@
-package edu.rosehulman.lewistd.photolifetime;
+package edu.rosehulman.lewistd.photolifetime.Fragments;
 
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
-import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.design.internal.BottomNavigationItemView;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+
+import edu.rosehulman.lewistd.photolifetime.R;
 
 
 /**
@@ -50,26 +46,6 @@ public class ViewImageFrag extends Fragment {
         // Inflate the layout for this fragment
         View imageView = inflater.inflate(R.layout.fragment_view_image, container, false);
         ImageView iView = imageView.findViewById(R.id.imageView2);
-//        Bitmap myBitmap = BitmapFactory.decodeFile(mPath);
-//        try {
-//            ExifInterface exif = new ExifInterface(mPath);
-//            int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, 1);
-//            Log.d("EXIF", "Exif: " + orientation);
-//            Matrix matrix = new Matrix();
-//            if (orientation == 6) {
-//                matrix.postRotate(90);
-//            }
-//            else if (orientation == 3) {
-//                matrix.postRotate(180);
-//            }
-//            else if (orientation == 8) {
-//                matrix.postRotate(270);
-//            }
-//            myBitmap = Bitmap.createBitmap(myBitmap, 0, 0, myBitmap.getWidth(), myBitmap.getHeight(), matrix, true); // rotating bitmap
-//        }
-//        catch (Exception e) {
-//
-//        }
         iView.setImageURI(mPath);
         return imageView;
     }

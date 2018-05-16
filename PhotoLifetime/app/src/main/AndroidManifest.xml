@@ -37,9 +37,9 @@
         <receiver android:name=".WarningReceiver"></receiver>
         <receiver android:name=".DeletionReceiver"></receiver>
 
-        <service android:name=".deletionService"
-            android:enabled="true">
-        </service>
+        <!--<service android:name=".deletionService"-->
+            <!--android:enabled="true">-->
+        <!--</service>-->
     </application>
 
 </manifest>

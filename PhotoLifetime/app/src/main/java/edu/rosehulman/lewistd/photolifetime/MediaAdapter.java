@@ -5,16 +5,9 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
-import android.media.ExifInterface;
 import android.net.Uri;
 import android.support.annotation.NonNull;
-import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -23,7 +16,7 @@ import android.view.ViewGroup;
 import android.widget.CalendarView;
 import android.widget.ImageView;
 
-import edu.rosehulman.lewistd.photolifetime.ImageListFragment;
+import edu.rosehulman.lewistd.photolifetime.Fragments.ImageListFragment;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -32,7 +25,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -45,7 +37,6 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
     ArrayList<Medias> mGallery;
     private ChildEventListener mChildEventListener;
 
-    RecyclerView mRecyclerView;
     Medias mCurrentMedia;
     String mUid;
 
@@ -53,11 +44,9 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
     private Calendar warningCalendar = Calendar.getInstance();
     DatabaseReference mPhotoLifetimeRef;
     Query mQueryRef;
-    FragmentManager mFM;
     LayoutInflater mInflater;
     Activity mActivity;
     ImageListFragment.Callback mCallback;
-//    ArrayList<Medias> mMedias;
 
     public MediaAdapter(Activity activity, ImageListFragment.Callback callback, Context context) {
 
@@ -65,7 +54,6 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
         mActivity = activity;
         mContext = context;
         mCallback = callback;
-//        mRecyclerView = rView;
         mGallery = new ArrayList<>();
         mInflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         mUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
@@ -73,22 +61,11 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
         mChildEventListener = new MediaEventListener();
         mQueryRef = mPhotoLifetimeRef.orderByChild("uid").equalTo(mUid);
         mQueryRef.addChildEventListener(mChildEventListener);
-//        mGallery.mMedia.add(new Medias());
     }
 
     public String getUid() {
         return this.mUid;
     }
-
-
-//    public MediaAdapter(Context context, RecyclerView rView, FragmentManager fm, ArrayList<Medias> newGallery) {
-//        mContext = context;
-//        mRecyclerView = rView;
-//        mGallery = new ArrayList<>();
-//        mFM = fm;
-//        mGallery = newGallery;
-////        mGallery.mMedia.add(new Medias());
-//    }
 
     class MediaEventListener implements ChildEventListener{
 
@@ -176,7 +153,7 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
             mMedia = currentMedia;
         }
         @Override
-        public boolean onLongClick(View v) {
+        public boolean onLongClick(final View v) {
             mCurrentMedia = mMedia;
             AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
             builder.setTitle(R.string.dialog_title);
@@ -196,8 +173,8 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
                             builder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    deleteMedia(mMedia);
-                                    Snackbar.make(mRecyclerView, "Item Deleted", Snackbar.LENGTH_SHORT)
+                                    deleteMedia(Uri.parse(mMedia.getMediaPath()));
+                                    Snackbar.make(v, "Item Deleted", Snackbar.LENGTH_SHORT)
                                             .show();
                                 }
                             });
@@ -251,7 +228,6 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
         builder.setView(view);
         final CalendarView deliveryDateView = (CalendarView) view.findViewById(R.id.calendar_view);
 
-
         if(this.containsPic(mUri)!=-1){
             deliveryDateView.setDate(this.containsPic(mUri));
         }
@@ -269,20 +245,21 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
             public void onClick(DialogInterface dialog, int which) {
 
                 warningCalendar.set(mYear, mMonth, mDate-1, 0, 0, 0);
-                deletionCalendar.set(mYear, mMonth, mDate, 2, 49, 0);
+                deletionCalendar.set(mYear, mMonth, mDate, 11, 7, 0);
                 Date date = new Date();
 
                 Log.d("check", "date set to :"+deletionCalendar.getTimeInMillis()+" current time: "+ deliveryDateView.getDate()+"  "+deletionCalendar.getTimeInMillis());
-                ((MainActivity) mActivity).setIntentArray(warningCalendar.getTimeInMillis(), deletionCalendar.getTimeInMillis(), mUri);
+                Log.d("mili:   ", deletionCalendar.getTimeInMillis()-warningCalendar.getTimeInMillis()+"");
+                ((MainActivity) mActivity).setIntentArray(warningCalendar.getTimeInMillis(), deletionCalendar.getTimeInMillis(), mCurrentMedia);
 
-                    setPicTime(mUri, deletionCalendar.getTimeInMillis());
+                    setPicTime(mCurrentMedia, deletionCalendar.getTimeInMillis());
             }
         });
         builder.setNeutralButton("delete", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 ((MainActivity) mActivity).deleteAlarm(mUri);
-                setPicTime(mUri, -1);
+                setPicTime(mCurrentMedia, -1);
             }
         });
         builder.setNegativeButton(android.R.string.cancel, null);
@@ -307,12 +284,19 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
         }
     }
 
-    private void deleteMedia(Medias media) {
-        mPhotoLifetimeRef.child(media.getKey()).removeValue();
-//
-//        mGallery.remove(adapterPosition);
-        ((MainActivity)mActivity).deleteAlarm(Uri.parse(media.getMediaPath()));
-//        notifyDataSetChanged();
+    public void deleteMedia(Uri mUri) {
+        Medias delete = null;
+        for(Medias media: mGallery){
+
+            Log.d("compare", media.getMediaPath()+"    uri:" +mUri.toString());
+            if(media.getMediaPath().equals(mUri.toString())){
+                delete = media;
+                break;
+            }
+        }
+        mPhotoLifetimeRef.child(delete.getKey()).removeValue();
+
+        ((MainActivity)mActivity).deleteAlarm(Uri.parse(delete.getMediaPath()));
     }
 
 
@@ -325,11 +309,15 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
         return -1;
     }
 
-    public void setPicTime(Uri mUri, long deletionTime){
-        for(Medias media : mGallery){
-            if(media.mediaPath == mUri.toString())
-                media.setDeletionTime(deletionTime);
-        }
+    public void setPicTime(Medias media, long deletionTime){
+
+        media.setDeletionTime(deletionTime);
+        mPhotoLifetimeRef.child(media.getKey()).setValue(media);
+        ((MainActivity)mActivity).setIntentArray(deletionTime-126420000,deletionTime, media);
+//        for(Medias media : mGallery){
+//            if(media.mediaPath == mUri.toString())
+//                media.setDeletionTime(deletionTime);
+//        }
     }
 
 }

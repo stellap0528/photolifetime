@@ -1,12 +1,6 @@
-package edu.rosehulman.lewistd.photolifetime;
+package edu.rosehulman.lewistd.photolifetime.Fragments;
 
-import android.*;
-import android.app.Activity;
-import android.app.AlarmManager;
-import android.app.FragmentTransaction;
-import android.app.PendingIntent;
 import android.content.ContentResolver;
-import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -23,20 +17,21 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
 
+import edu.rosehulman.lewistd.photolifetime.*;
+import edu.rosehulman.lewistd.photolifetime.R;
 import pub.devrel.easypermissions.EasyPermissions;
 
 import static android.app.Activity.RESULT_OK;
@@ -53,21 +48,11 @@ public class ImageListFragment extends Fragment {
     String mCurrentPhotoPath;
     Uri photoUri;
     FirebaseAuth mAuth;
+    private OnLogoutListener mLogoutListener;
+
 
     ImageListFragment.Callback mCallback;
-    FirebaseAuth.AuthStateListener mAuthStateListener;
-    Intent mWarningIntent;
-    Intent mDeletionIntent;
-    AlarmManager alarmManager;
-    OnCompleteListener mOnCompleteListener;
-
-    String mUid;
-    HashMap<Uri, PendingIntent> warningIntentMap;
-    HashMap<Uri, PendingIntent> deletionIntentMap;
-    HashMap<Uri, Integer> indexMap;
-
-    int index ;
-    private MediaAdapter mAdapter;
+    public MediaAdapter mAdapter;
     static Context context;
     static ContentResolver contentResolver;
 
@@ -82,7 +67,7 @@ public class ImageListFragment extends Fragment {
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         Log.d("bilada", "in list");
-        View rootView = inflater.inflate(R.layout.fragment_list, container, false);
+        View rootView = inflater.inflate(edu.rosehulman.lewistd.photolifetime.R.layout.fragment_list, container, false);
 
         setHasOptionsMenu(true);
         context = getContext();
@@ -104,6 +89,29 @@ public class ImageListFragment extends Fragment {
         return rootView;
     }
 
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        inflater.inflate(R.menu.menu_main, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        switch (item.getItemId()) {
+
+            case R.id.action_logout:
+                mLogoutListener.onLogout();;
+                return true;
+
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -113,6 +121,7 @@ public class ImageListFragment extends Fragment {
             throw new RuntimeException(context.toString()
                     + " must implement Callback");
         }
+        mLogoutListener = (OnLogoutListener) context;
     }
 
     @Override
@@ -155,7 +164,6 @@ public class ImageListFragment extends Fragment {
                 if (resultCode == RESULT_OK) {
                     File f = new File(mCurrentPhotoPath);
                     Uri contentUri = Uri.fromFile(f);
-//                    switchToGalaryFragment(contentUri);
 
                     Medias pic = new Medias(contentUri.toString(), -1, mAdapter.getUid());
                     mAdapter.addPic(pic);

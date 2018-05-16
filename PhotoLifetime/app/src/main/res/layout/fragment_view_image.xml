@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ViewImageFrag"
+    tools:context=".Fragments.ViewImageFrag"
     android:background="@color/black">
 
     <!-- TODO: Update blank fragment layout -->
