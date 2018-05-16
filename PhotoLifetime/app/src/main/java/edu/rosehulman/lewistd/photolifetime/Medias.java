@@ -10,7 +10,7 @@ import java.io.File;
 public class Medias implements Parcelable{
 
 
-    Uri mediaPath;
+    String mediaPath;
     long deletionTime;
     String uid;
     String key;
@@ -20,9 +20,10 @@ public class Medias implements Parcelable{
 
     }
 
-    public Medias(Uri path, long deletionTime) {
+    public Medias(String path, long deletionTime, String uid) {
         this.mediaPath = path;
         this.deletionTime = deletionTime;
+        this.uid = uid;
     }
 
     protected Medias(Parcel in){
@@ -42,7 +43,7 @@ public class Medias implements Parcelable{
         }
     };
 
-    public Uri getMediaPath(){return mediaPath;}
+    public String getMediaPath(){return mediaPath;}
 
     public String getUid(){return this.uid;}
 
@@ -61,7 +62,7 @@ public class Medias implements Parcelable{
         this.deletionTime = media.getDeletionTime();
     }
 
-    public void setMediaPath(Uri mediaPath){
+    public void setMediaPath(String mediaPath){
         this.mediaPath = mediaPath;
     }
 
@@ -80,7 +81,7 @@ public class Medias implements Parcelable{
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeParcelable(mediaPath, flags);
+        dest.writeString(mediaPath);
         dest.writeLong(deletionTime);
     }
 

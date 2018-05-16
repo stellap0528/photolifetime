@@ -54,7 +54,7 @@ public class ImageListFragment extends Fragment {
     Uri photoUri;
     FirebaseAuth mAuth;
 
-    Callback mCallback;
+    ImageListFragment.Callback mCallback;
     FirebaseAuth.AuthStateListener mAuthStateListener;
     Intent mWarningIntent;
     Intent mDeletionIntent;
@@ -81,7 +81,7 @@ public class ImageListFragment extends Fragment {
     }
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-
+        Log.d("bilada", "in list");
         View rootView = inflater.inflate(R.layout.fragment_list, container, false);
 
         setHasOptionsMenu(true);
@@ -93,7 +93,12 @@ public class ImageListFragment extends Fragment {
         RecyclerView recyclerView = (RecyclerView) rootView.findViewById(R.id.recycler_view);
         recyclerView.setLayoutManager(new GridLayoutManager(context, 2));
         recyclerView.setHasFixedSize(true);
-        mAdapter = new MediaAdapter(getContext(), mCallback);
+        Log.d("bilada", "before adapter");
+
+        mAdapter = new MediaAdapter(getActivity(), mCallback, getContext());
+
+        Log.d("bilada", "after adapter");
+
         recyclerView.setAdapter(mAdapter);
 
         return rootView;
@@ -103,7 +108,7 @@ public class ImageListFragment extends Fragment {
     public void onAttach(Context context) {
         super.onAttach(context);
         if (context instanceof Callback) {
-            mCallback = (Callback) context;
+            mCallback = (ImageListFragment.Callback) context;
         } else {
             throw new RuntimeException(context.toString()
                     + " must implement Callback");
@@ -117,12 +122,13 @@ public class ImageListFragment extends Fragment {
     }
     public void onActivityResult(int requestCode, int resultCode, Intent data){
         super.onActivityResult(requestCode, resultCode, data);
+        Log.d("bilada", "list onActivity Result  requestcode:" + requestCode);
         switch (requestCode){
             case PICK_IMAGE:
                 if (resultCode == RESULT_OK) {
                     photoUri = data.getData();
                     if (photoUri != null) {
-                        Log.d("check", "gallery opened for :" + photoUri.toString());
+                        Log.d("bilada", "gallery opened for :" + photoUri.toString());
 
 //                        switchToGalaryFragment(photoUri);
 
@@ -142,7 +148,7 @@ public class ImageListFragment extends Fragment {
                             Log.d("PATH_NULL", "Image path is still null.");
                         }
                     }
-                    mAdapter.addPic(new Medias(photoUri, -1));
+                    mAdapter.addPic(new Medias(photoUri.toString(), -1, mAdapter.getUid()));
                 }
                 break;
             case REQUEST_IMAGE_CAPTURE:
@@ -151,7 +157,7 @@ public class ImageListFragment extends Fragment {
                     Uri contentUri = Uri.fromFile(f);
 //                    switchToGalaryFragment(contentUri);
 
-                    Medias pic = new Medias(contentUri, -1);
+                    Medias pic = new Medias(contentUri.toString(), -1, mAdapter.getUid());
                     mAdapter.addPic(pic);
                 }
                 break;

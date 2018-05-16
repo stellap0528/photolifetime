@@ -23,6 +23,7 @@ import android.view.ViewGroup;
 import android.widget.CalendarView;
 import android.widget.ImageView;
 
+import edu.rosehulman.lewistd.photolifetime.ImageListFragment;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -42,6 +43,8 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
     int mYear,mMonth,mDate;
     Context mContext;
     ArrayList<Medias> mGallery;
+    private ChildEventListener mChildEventListener;
+
     RecyclerView mRecyclerView;
     Medias mCurrentMedia;
     String mUid;
@@ -56,20 +59,26 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
     ImageListFragment.Callback mCallback;
 //    ArrayList<Medias> mMedias;
 
-    public MediaAdapter(Context context, ImageListFragment.Callback callback) {
-//        mActivity = activity;
+    public MediaAdapter(Activity activity, ImageListFragment.Callback callback, Context context) {
+
+        Log.d("bilada", "in adapter");
+        mActivity = activity;
         mContext = context;
         mCallback = callback;
 //        mRecyclerView = rView;
         mGallery = new ArrayList<>();
         mInflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-//        mUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        mPhotoLifetimeRef = FirebaseDatabase.getInstance().getReference().child("weatherpics");
-        
+        mUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        mPhotoLifetimeRef = FirebaseDatabase.getInstance().getReference().child("Medias");
+        mChildEventListener = new MediaEventListener();
         mQueryRef = mPhotoLifetimeRef.orderByChild("uid").equalTo(mUid);
+        mQueryRef.addChildEventListener(mChildEventListener);
 //        mGallery.mMedia.add(new Medias());
     }
 
+    public String getUid() {
+        return this.mUid;
+    }
 
 
 //    public MediaAdapter(Context context, RecyclerView rView, FragmentManager fm, ArrayList<Medias> newGallery) {
@@ -85,17 +94,35 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
 
         @Override
         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-
+            Medias medias = dataSnapshot.getValue(Medias.class);
+            medias.setKey(dataSnapshot.getKey());
+            mGallery.add(medias);
+            notifyDataSetChanged();
         }
 
         @Override
         public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
+            String key = dataSnapshot.getKey();
+            Medias newMedias = dataSnapshot.getValue(Medias.class);
+            for(Medias medias : mGallery){
+                if(medias.getKey().equals(key)){
+                    medias.setValues(newMedias);
+                    break;
+                }
+            }
+            notifyDataSetChanged();
         }
 
         @Override
         public void onChildRemoved(DataSnapshot dataSnapshot) {
-
+            String key = dataSnapshot.getKey();
+            for(Medias medias : mGallery){
+                if(key.equals(medias.getKey())){
+                    mGallery.remove(medias);
+                    notifyDataSetChanged();
+                    break;
+                }
+            }
         }
 
         @Override
@@ -118,8 +145,16 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        Medias currentMedia = mGallery.get(position);
-        holder.mImageView.setImageURI(mGallery.get(position).mediaPath);
+        final Medias currentMedia = mGallery.get(position);
+        holder.mImageView.setImageURI(Uri.parse(mGallery.get(position).mediaPath));
+        holder.mImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mCallback.onDocSelected(Uri.parse(currentMedia.getMediaPath()));
+//
+            }
+        });
+        holder.mImageView.setOnLongClickListener(new onLong(currentMedia));
     }
 
     @Override
@@ -128,80 +163,84 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
     }
 
     public void addPic(Medias picture) {
-        mGallery.add(picture);
-        notifyDataSetChanged();
+        mPhotoLifetimeRef.push().setValue(picture);
+//        mGallery.add(picture);
+//        notifyDataSetChanged();
     }
 
+
+    public class onLong implements View.OnLongClickListener{
+
+        Medias mMedia;
+        onLong(Medias currentMedia){
+            mMedia = currentMedia;
+        }
+        @Override
+        public boolean onLongClick(View v) {
+            mCurrentMedia = mMedia;
+            AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+            builder.setTitle(R.string.dialog_title);
+            builder.setItems(R.array.dialog_array, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    switch (which) {
+                        case 0:
+                            showPhotoLifeTime(Uri.parse(mCurrentMedia.getMediaPath()));
+                            break;
+                        case 1:
+                            addEditPhotoLifeTime(Uri.parse(mCurrentMedia.getMediaPath()));
+                            break;
+                        case 2:
+                            AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+                            builder.setTitle(R.string.safety_delete_dialog);
+                            builder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    deleteMedia(mMedia);
+                                    Snackbar.make(mRecyclerView, "Item Deleted", Snackbar.LENGTH_SHORT)
+                                            .show();
+                                }
+                            });
+                            builder.setNegativeButton(android.R.string.no, null);
+                            builder.create().show();
+                            break;
+                        case 3:
+                            Intent intentShareFile = new Intent(Intent.ACTION_SEND);
+                            Uri myFilePath = Uri.parse(mMedia.mediaPath);
+
+
+                            intentShareFile.setType("image/jpeg");
+                            intentShareFile.putExtra(Intent.EXTRA_STREAM, myFilePath);
+
+                            intentShareFile.putExtra(Intent.EXTRA_SUBJECT,
+                                    "Sharing File...");
+                            intentShareFile.putExtra(Intent.EXTRA_TEXT, "Sharing File...");
+
+                            mContext.startActivity(Intent.createChooser(intentShareFile, "Share File"));
+
+                            break;
+                    }
+
+                }
+            });
+            builder.setNegativeButton(android.R.string.cancel, null);
+            builder.create().show();
+            return false;
+        }
+    }
     public class ViewHolder extends RecyclerView.ViewHolder {
         private ImageView mImageView;
 
         public ViewHolder(final View itemView) {
             super(itemView);
-            itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    mCallback.onDocSelected(mGallery.get(getAdapterPosition()).getMediaPath());
-//                    ViewImageFrag mImageFragment = new ViewImageFrag().newInstance(mGallery.get(getAdapterPosition()).mediaPath);
-//                    FragmentTransaction ft = mFM.beginTransaction();
-//                    ft.replace(R.id.container_layout, mImageFragment);
-//                    ft.addToBackStack("image");
-//                    ft.commit();
-                }
-            });
-            itemView.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    mCurrentMedia = mGallery.get(getAdapterPosition());
-                    AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-                    builder.setTitle(R.string.dialog_title);
-                    builder.setItems(R.array.dialog_array, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            switch (which) {
-                                case 0:
-                                    showPhotoLifeTime(mCurrentMedia.getMediaPath());
-                                    break;
-                                case 1:
-                                    addEditPhotoLifeTime(mCurrentMedia.getMediaPath());
-                                    break;
-                                case 2:
-                                    AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-                                    builder.setTitle(R.string.safety_delete_dialog);
-                                    builder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            deleteMedia(getAdapterPosition());
-                                            Snackbar.make(itemView, "Item Deleted", Snackbar.LENGTH_SHORT)
-                                                    .show();
-                                        }
-                                    });
-                                    builder.setNegativeButton(android.R.string.no, null);
-                                    builder.create().show();
-                                    break;
-                                case 3:
-                                    Intent intentShareFile = new Intent(Intent.ACTION_SEND);
-                                    Uri myFilePath = mGallery.get(getAdapterPosition()).mediaPath;
-
-
-                                        intentShareFile.setType("image/jpeg");
-                                        intentShareFile.putExtra(Intent.EXTRA_STREAM, myFilePath);
-
-                                        intentShareFile.putExtra(Intent.EXTRA_SUBJECT,
-                                                "Sharing File...");
-                                        intentShareFile.putExtra(Intent.EXTRA_TEXT, "Sharing File...");
-
-                                        mContext.startActivity(Intent.createChooser(intentShareFile, "Share File"));
-
-                                    break;
-                            }
-
-                        }
-                    });
-                    builder.setNegativeButton(android.R.string.cancel, null);
-                    builder.create().show();
-                    return false;
-                }
-            });
+//            itemView.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//                    mCallback.onDocSelected(mGallery.get(getAdapterPosition()).getMediaPath());
+////
+//                }
+//            });
+//            itemView.setOnLongClickListener(new onLong());
             mImageView = (ImageView) itemView.findViewById(R.id.imageView);
         }
     }
@@ -268,16 +307,19 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
         }
     }
 
-    private void deleteMedia(int adapterPosition) {
-        mGallery.remove(adapterPosition);
-        ((MainActivity)mActivity).deleteAlarm(mGallery.get(adapterPosition).getMediaPath());
-        notifyDataSetChanged();
+    private void deleteMedia(Medias media) {
+        mPhotoLifetimeRef.child(media.getKey()).removeValue();
+//
+//        mGallery.remove(adapterPosition);
+        ((MainActivity)mActivity).deleteAlarm(Uri.parse(media.getMediaPath()));
+//        notifyDataSetChanged();
     }
+
 
 
     public long containsPic(Uri mUri){
         for(Medias media : mGallery){
-            if(media.mediaPath == mUri)
+            if(media.mediaPath == mUri.toString())
                 return media.deletionTime;
         }
         return -1;
@@ -285,13 +327,9 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
 
     public void setPicTime(Uri mUri, long deletionTime){
         for(Medias media : mGallery){
-            if(media.mediaPath == mUri)
+            if(media.mediaPath == mUri.toString())
                 media.setDeletionTime(deletionTime);
         }
-    }
-
-    public interface Callback{
-        MediaAdapter getAdapter();
     }
 
 }
