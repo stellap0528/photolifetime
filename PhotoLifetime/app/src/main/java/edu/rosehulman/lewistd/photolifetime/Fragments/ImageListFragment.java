@@ -139,7 +139,7 @@ public class ImageListFragment extends Fragment {
                     photoUri = data.getData();
                     if (photoUri != null) {
                         Log.d("bilada", "gallery opened for :" + photoUri.toString());
-                        
+
                         try {
                             mAdapter.addPic(new Medias(PathUtil.getPath(getContext(), photoUri), -1, mAdapter.getUid()));
                         } catch (URISyntaxException e) {

@@ -243,7 +243,7 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
             }
             int height = image.getWidth();//1400;//image.getWidth()/3;
             int width = image.getHeight();//1700;//image.getHeight()/2;
-            image = Bitmap.createBitmap(image, 400, 0, 2300, 1700, matrix, true); // rotating bitmap
+            image = Bitmap.createBitmap(image, 0, 0, 2300, 2300, matrix, true); // rotating bitmap
             Log.d("DIMENSIONS", "Image Dimensions: " + width + " " + height);
         }
         catch (Exception e) {
@@ -350,8 +350,9 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
             }
         }
         mPhotoLifetimeRef.child(delete.getKey()).removeValue();
-
-        ((MainActivity)mActivity).deleteAlarm(Uri.parse(delete.getMediaPath()));
+        if (delete.deletionTime != -1) {
+            ((MainActivity) mActivity).deleteAlarm(Uri.parse(delete.getMediaPath()));
+        }
     }
 
 

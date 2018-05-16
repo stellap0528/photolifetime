@@ -22,6 +22,7 @@
     <string name="done">DONE</string>
     <string name="dialog_title">Choose an option</string>
     <string name="safety_delete_dialog">Are you sure you want to delete?\nThis action cannot be undone.</string>
+    <string name="log_in">Log In</string>
     <string-array name="dialog_array">
         <item>View Lifetime</item>
         <item>Edit Lifetime</item>
