@@ -5,7 +5,12 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
+import android.media.ExifInterface;
 import android.net.Uri;
+import android.os.ParcelFileDescriptor;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.RecyclerView;
@@ -25,6 +30,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 
+import java.io.File;
+import java.io.FileDescriptor;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -123,7 +131,13 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         final Medias currentMedia = mGallery.get(position);
-        holder.mImageView.setImageURI(Uri.parse(mGallery.get(position).mediaPath));
+        try {
+            holder.mImageView.setImageBitmap(getBitmapFromUri(currentMedia.mediaPath));
+        } catch (IOException e) {
+            e.printStackTrace();
+            e.printStackTrace();
+        }
+//        holder.mImageView.setImageURI(Uri.parse(mGallery.get(position).mediaPath));
         holder.mImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -205,6 +219,39 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
             return false;
         }
     }
+
+    private Bitmap getBitmapFromUri(String path) throws IOException {
+//        ParcelFileDescriptor parcelFileDescriptor =
+//                mContext.getContentResolver().openFileDescriptor(uri, "r");
+//        FileDescriptor fileDescriptor = parcelFileDescriptor.getFileDescriptor();
+//        Bitmap image = BitmapFactory.decodeFileDescriptor(fileDescriptor);
+//        parcelFileDescriptor.close();
+        Bitmap image = BitmapFactory.decodeFile(path);
+        try {
+            ExifInterface exif = new ExifInterface(path);
+            int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, 1);
+            Log.d("EXIF", "Exif: " + orientation);
+            Matrix matrix = new Matrix();
+            if (orientation == 6) {
+                matrix.postRotate(90);
+            }
+            else if (orientation == 3) {
+                matrix.postRotate(180);
+            }
+            else if (orientation == 8) {
+                matrix.postRotate(270);
+            }
+            int height = image.getWidth();//1400;//image.getWidth()/3;
+            int width = image.getHeight();//1700;//image.getHeight()/2;
+            image = Bitmap.createBitmap(image, 400, 0, 2300, 1700, matrix, true); // rotating bitmap
+            Log.d("DIMENSIONS", "Image Dimensions: " + width + " " + height);
+        }
+        catch (Exception e) {
+
+        }
+        return image;
+    }
+
     public class ViewHolder extends RecyclerView.ViewHolder {
         private ImageView mImageView;
 
@@ -289,9 +336,17 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
         for(Medias media: mGallery){
 
             Log.d("compare", media.getMediaPath()+"    uri:" +mUri.toString());
-            if(media.getMediaPath().equals(mUri.toString())){
+            if(media.getMediaPath().equals(mUri.getPath())){
                 delete = media;
                 break;
+            }
+        }
+        File fdelete = new File(delete.mediaPath);
+        if (fdelete.exists()) {
+            if (fdelete.delete()) {
+                System.out.println("file Deleted :" + delete.mediaPath);
+            } else {
+                System.out.println("file not Deleted :" + delete.mediaPath);
             }
         }
         mPhotoLifetimeRef.child(delete.getKey()).removeValue();

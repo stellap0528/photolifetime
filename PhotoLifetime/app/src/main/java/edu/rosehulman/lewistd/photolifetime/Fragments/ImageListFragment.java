@@ -27,6 +27,7 @@ import com.google.firebase.auth.FirebaseAuth;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -142,30 +143,34 @@ public class ImageListFragment extends Fragment {
 //                        switchToGalaryFragment(photoUri);
 
                         // Get image path from media store
-                        String[] filePathColumn = { android.provider.MediaStore.MediaColumns.DATA };
-                        Cursor cursor = getActivity().getContentResolver().query(photoUri, filePathColumn, null, null, null);
+//                        String[] filePathColumn = { android.provider.MediaStore.MediaColumns.DATA };
+//                        Cursor cursor = getActivity().getContentResolver().query(photoUri, filePathColumn, null, null, null);
+//
+//                        if(cursor == null || !cursor.moveToFirst()) {
+//                            return;
+//                        }
+//
+//                        int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+//                        String imagePath = cursor.getString(columnIndex);
+//                        cursor.close();
+//                        if (imagePath == null) {
+//                            // error happens here
+//                            Log.d("PATH_NULL", "Image path is still null.");
+//                        }
 
-                        if(cursor == null || !cursor.moveToFirst()) {
-                            return;
-                        }
-
-                        int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-                        String imagePath = cursor.getString(columnIndex);
-                        cursor.close();
-                        if (imagePath == null) {
-                            // error happens here
-                            Log.d("PATH_NULL", "Image path is still null.");
+                        try {
+                            mAdapter.addPic(new Medias(PathUtil.getPath(getContext(), photoUri), -1, mAdapter.getUid()));
+                        } catch (URISyntaxException e) {
+                            e.printStackTrace();
                         }
                     }
-                    mAdapter.addPic(new Medias(photoUri.toString(), -1, mAdapter.getUid()));
                 }
                 break;
             case REQUEST_IMAGE_CAPTURE:
                 if (resultCode == RESULT_OK) {
-                    File f = new File(mCurrentPhotoPath);
-                    Uri contentUri = Uri.fromFile(f);
 
-                    Medias pic = new Medias(contentUri.toString(), -1, mAdapter.getUid());
+
+                    Medias pic = new Medias(mCurrentPhotoPath, -1, mAdapter.getUid());
                     mAdapter.addPic(pic);
                 }
                 break;
