@@ -11,6 +11,7 @@ import android.graphics.Matrix;
 import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.ParcelFileDescriptor;
+import android.os.StrictMode;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.RecyclerView;
@@ -196,8 +197,10 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
                             builder.create().show();
                             break;
                         case 3:
+                            StrictMode.VmPolicy.Builder strictBuilder = new StrictMode.VmPolicy.Builder();
+                            StrictMode.setVmPolicy(strictBuilder.build());
                             Intent intentShareFile = new Intent(Intent.ACTION_SEND);
-                            Uri myFilePath = Uri.parse(mMedia.mediaPath);
+                            Uri myFilePath = Uri.fromFile(new File(mMedia.getMediaPath()));
 
 
                             intentShareFile.setType("image/jpeg");
@@ -205,7 +208,7 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
 
                             intentShareFile.putExtra(Intent.EXTRA_SUBJECT,
                                     "Sharing File...");
-                            intentShareFile.putExtra(Intent.EXTRA_TEXT, "Sharing File...");
+                            intentShareFile.putExtra(Intent.EXTRA_TEXT, "");
 
                             mContext.startActivity(Intent.createChooser(intentShareFile, "Share File"));
 
@@ -335,7 +338,7 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
         Medias delete = null;
         for(Medias media: mGallery){
 
-            Log.d("compare", media.getMediaPath()+"    uri:" +mUri.toString());
+            Log.d("compare", media.getMediaPath()+"    uri:" + mUri.toString());
             if(media.getMediaPath().equals(mUri.getPath())){
                 delete = media;
                 break;
