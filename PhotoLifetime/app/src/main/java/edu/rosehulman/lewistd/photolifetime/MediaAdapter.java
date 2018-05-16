@@ -224,11 +224,6 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
     }
 
     private Bitmap getBitmapFromUri(String path) throws IOException {
-//        ParcelFileDescriptor parcelFileDescriptor =
-//                mContext.getContentResolver().openFileDescriptor(uri, "r");
-//        FileDescriptor fileDescriptor = parcelFileDescriptor.getFileDescriptor();
-//        Bitmap image = BitmapFactory.decodeFileDescriptor(fileDescriptor);
-//        parcelFileDescriptor.close();
         Bitmap image = BitmapFactory.decodeFile(path);
         try {
             ExifInterface exif = new ExifInterface(path);

@@ -117,12 +117,16 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnL
 
 
     public void deleteAlarm(Uri mUri) {
-        alarmManager.cancel(warningIntentMap.get(mUri));
-        alarmManager.cancel(deletionIntentMap.get(mUri));
+        if(warningIntentMap!=null)
+            alarmManager.cancel(warningIntentMap.get(mUri));
+        if(deletionIntentMap!=null)
+            alarmManager.cancel(deletionIntentMap.get(mUri));
     }
 
     public void setIntentArray(long warningDate, long deletionDate, Medias media){
-        Uri mUri = Uri.parse(media.getMediaPath());
+
+        Log.d("media uri  ", media.getMediaPath());
+        Uri mUri = Uri.parse("file://"+media.getMediaPath());
         if(!indexMap.containsKey(mUri)){
             indexMap.put(mUri, index);
             index++;
@@ -133,7 +137,8 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnL
         mDeletionIntent.putExtra("URI", mUri);
 
         Log.d("check", "set pendingintent for "+mUri+" Date: "+deletionDate );
-//        Log.d("check", )
+
+
         PendingIntent warningPI = PendingIntent.getBroadcast(this, mIndex*10, mWarningIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         PendingIntent deletionPI = PendingIntent.getBroadcast(this, mIndex*10+1, mDeletionIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
