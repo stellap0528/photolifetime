@@ -139,25 +139,7 @@ public class ImageListFragment extends Fragment {
                     photoUri = data.getData();
                     if (photoUri != null) {
                         Log.d("bilada", "gallery opened for :" + photoUri.toString());
-
-//                        switchToGalaryFragment(photoUri);
-
-                        // Get image path from media store
-//                        String[] filePathColumn = { android.provider.MediaStore.MediaColumns.DATA };
-//                        Cursor cursor = getActivity().getContentResolver().query(photoUri, filePathColumn, null, null, null);
-//
-//                        if(cursor == null || !cursor.moveToFirst()) {
-//                            return;
-//                        }
-//
-//                        int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-//                        String imagePath = cursor.getString(columnIndex);
-//                        cursor.close();
-//                        if (imagePath == null) {
-//                            // error happens here
-//                            Log.d("PATH_NULL", "Image path is still null.");
-//                        }
-
+                        
                         try {
                             mAdapter.addPic(new Medias(PathUtil.getPath(getContext(), photoUri), -1, mAdapter.getUid()));
                         } catch (URISyntaxException e) {
